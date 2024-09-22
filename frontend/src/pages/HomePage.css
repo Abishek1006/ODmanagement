@@ -1,0 +1,61 @@
+/* Main container for the homepage content */
+.homepage-container {
+  padding: 20px;
+  margin-top: 80px; /* Margin to avoid overlapping with the fixed navbar */
+  margin-left: 250px; /* Margin to avoid overlapping with the side menu bar */
+  transition: margin-left 0.3s ease; /* Smooth transition for responsive sidebar */
+}
+
+/* Title styling */
+.title {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+/* Grid layout for the event cards 
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px; Space between cards 
+}
+  */
+
+/* Styling for 'No Events' message */
+.no-events {
+  text-align: center;
+  font-size: 18px;
+  color: #666;
+}
+
+/* Create link styling */
+.create-link {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.create-link:hover {
+  text-decoration: underline;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  /* For smaller screens, reduce left margin when sidebar collapses */
+  .homepage-container {
+    margin-left: 200px; /* Adjusted margin for collapsed sidebar */
+  }
+}
+
+@media (max-width: 768px) {
+  /* Single column grid layout for smaller screens */
+  .grid-container {
+    grid-template-columns: 1fr;
+  }
+
+  /* On very small screens, remove the left margin entirely */
+  .homepage-container {
+    margin-left: 0;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
