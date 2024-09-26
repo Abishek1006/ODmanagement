@@ -1,3 +1,4 @@
+// frontend/src/components/sidebar.jsx
 import React from 'react';
 import { Link } from 'react-router-dom';
  import './Sidebar.css';

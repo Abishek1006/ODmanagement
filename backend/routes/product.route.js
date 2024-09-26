@@ -1,4 +1,4 @@
-
+// backend/routes/product.routes.js
 import express from "express";
 import mongoose from "mongoose";
 import { createProduct, deleteProduct, getProducts, updateProduct } from "../controllers/product.controller.js";

@@ -1,3 +1,4 @@
+// frontend/src/components/Navbar.jsx
 import React from 'react'
 import snrlogo from '../assets/snrlogo.png'
 import sreclogo from '../assets/sreclogo.png'

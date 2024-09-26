@@ -14,7 +14,9 @@ function App() {
         <Sidebar />
         <div className="content-area">
           <Routes>
-            <Route path="/" element={<HomePage />} />
+             <Route path="/" element={<HomePage />} />
+            {/*<Route path="/" element={<Login />} />
+          <Route path="/register" element={<Register />} /> */}
             <Route path="/create" element={<CreatePage />} />
           </Routes>
           <Outlet />

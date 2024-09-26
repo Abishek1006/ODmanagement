@@ -22,3 +22,4 @@ app.listen(port, () => {
     connectDB();  // Ensure the database is connected
     console.log(`Server is listening on port ${port}`);
 });
+

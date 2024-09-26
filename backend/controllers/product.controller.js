@@ -1,3 +1,4 @@
+// backend/controllers/product.Controller.js
 import mongoose from "mongoose";
 import Product from "../models/product.model.js";
 

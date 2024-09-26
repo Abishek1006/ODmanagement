@@ -1,3 +1,4 @@
+// frontend/src/components/ProductCard.jsx
 import React, { useState } from 'react';
 import { MdDelete } from 'react-icons/md';
 import { CiEdit } from 'react-icons/ci';
