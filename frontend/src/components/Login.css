@@ -1,0 +1,469 @@
+/* Navbar styling */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: #fff;
+    border-bottom: 2px solid #ccc;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    box-sizing: border-box;
+}
+
+.navbar img {
+    width: 80px;
+    height: auto;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.navbar-content {
+    text-align: center;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.navbar h1 {
+    font-size: 20px;
+    color: rgb(255, 121, 43);
+    font-weight: bold;
+    margin: 0;
+}
+
+.navbar p {
+    font-size: 14px;
+    color: #555;
+    margin: 5px 0;
+    line-height: 1.4;
+    text-align: center;
+}
+
+/* Adjust body padding to account for the fixed navbar */
+body {
+    padding-top: 120px;
+}
+
+/* Slideshow styling */
+.slideshow-container {
+    position: relative;
+    width: 100%;
+    margin: auto;
+    overflow: hidden;
+}
+
+.slideshow-slide {
+    display: flex;
+    width: 400%;
+    transition: transform 6s ease;
+}
+
+.slideshow-slide img {
+    width: 100vw;
+    height: auto;
+}
+
+.slideshow-dot-container {
+    text-align: center;
+    position: absolute;
+    bottom: 15px;
+    width: 100%;
+}
+
+.slideshow-dot {
+    height: 15px;
+    width: 15px;
+    margin: 0 5px;
+    background-color: #bbb;
+    border-radius: 50%;
+    display: inline-block;
+    cursor: pointer;
+}
+
+.slideshow-dot.active {
+    background-color: #717171;
+}
+
+/* Button to open/close login form */
+.login-toggle-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: #f4a300;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.login-toggle-btn:hover {
+    background-color: #e89000;
+}
+.register-toggle-btn{
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 10px 20px;
+    background-color: #f4a300;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 1001;
+}
+.register-toggle-btn:hover{
+    background-color: #e89000;
+}
+
+/* Login Form styling */
+.login-overlay {
+    position: fixed; /* Fixed position to ensure it stays in place */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    z-index: 1000; /* Ensure it’s on top of other content */
+}
+
+.login-form {
+    position: relative;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 300px;
+}
+
+.login-form h2 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.login-form form {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form label {
+    margin-bottom: 5px;
+}
+
+.login-form input {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.login-form button {
+    padding: 10px;
+    background-color: #f4a300;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.login-form button:hover {
+    background-color: #e89000;
+}
+/* register form stylings*/
+/* Register Form Overlay */
+.register-overlay {
+    position: fixed; /* Fixed position to ensure it stays in place */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+    z-index: 1000; /* Ensure it’s on top of other content */
+}
+
+.register-form {
+    position: relative;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 300px;
+}
+
+.register-form h2 {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+.register-form form {
+    display: flex;
+    flex-direction: column;
+}
+
+.register-form label {
+    margin-bottom: 5px;
+}
+
+.register-form input {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.register-form button {
+    padding: 10px;
+    background-color: #f4a300;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.register-form button:hover {
+    background-color: #e89000;
+}
+
+/* Close button inside the register form */
+.register-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #f4a300;
+}
+
+.register-close-btn:hover {
+    color: #e89000;
+}
+
+
+/* Close button inside the login form */
+.login-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    border: none;
+    background: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #f4a300;
+}
+
+.login-close-btn:hover {
+    color: #e89000;
+}
+
+/* Forgot Password link */
+.forgot-password {
+    text-align: center;
+    display: block;
+    margin-top: 10px;
+    color: #f4a300;
+    text-decoration: none;
+}
+
+.forgot-password:hover {
+    text-decoration: underline;
+}
+
+/* Course Section Styling */
+.course_section {
+    text-align: center;
+    padding: 20px;
+    padding-top: 0px;
+}
+
+.course_section .heading {
+    font-size: 24px;
+    text-align: center;
+}
+
+.course_section hr {
+    width: 20%;
+    color: black;
+    border: 1px solid black;
+}
+
+.course_section img {
+    width: 300px;
+    height: 300px;
+    margin: 5px;
+}
+
+/* Flexbox for the text section */
+.course_section .info_section {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.course_section .info_box {
+    text-align: center;
+}
+
+.course_section h1 {
+    color: orange;
+}
+
+.course_section h3 {
+    color: black;
+    margin-top: -10px;
+}
+
+/* About Us Section */
+.aboutus {
+    display: flex;
+    align-items: flex-start;
+    padding: 20px;
+    gap: 20px;
+    background-color: gray;
+}
+
+.aboutus img {
+    margin-top: 6%;
+    width: 250px;
+    height: 100px;
+    flex-shrink: 0;
+}
+
+.aboutus .text-content {
+    max-width: 600px;
+    text-align: left;
+}
+
+.aboutus h3 {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 5px;
+}
+
+.aboutus hr {
+    width: 50px;
+    border: 1px solid black;
+    margin-bottom: 15px;
+}
+
+.aboutus p {
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+}
+
+/* Vision and Mission Section */
+.vision_mission h1 {
+    color: orange;
+}
+
+.vision_mission h3 {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.vision_mission p {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+.vision_mission ul {
+    padding-left: 20px;
+    padding-right: 20px;
+}
+
+/* Footer Styling */
+.footer h3 {
+    background-color: orange;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    color: white;
+}
+
+.footer p {
+    text-align: center;
+}
+
+/* Media Queries for Responsive Design */
+@media (max-width: 768px) {
+    .navbar {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .navbar img {
+        width: 60px;
+    }
+
+    .navbar-content h1 {
+        font-size: 18px;
+    }
+
+    .navbar-content p {
+        font-size: 12px;
+    }
+
+    .course_section img {
+        width: 200px;
+        height: auto;
+    }
+
+    .aboutus {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .aboutus img {
+        width: 80%;
+    }
+
+    .login-form {
+        width: 90%;
+    }
+}
+
+@media (max-width: 480px) {
+    .navbar img {
+        width: 50px;
+    }
+
+    .navbar-content h1 {
+        font-size: 16px;
+    }
+
+    .navbar-content p {
+        font-size: 10px;
+    }
+
+    .course_section .info_section {
+        flex-direction: column;
+    }
+
+    .course_section .info_box {
+        margin-bottom: 20px;
+    }
+
+    .aboutus img {
+        width: 100%;
+    }
+
+    .login-form {
+        width: 100%;
+        padding: 10px;
+    }
+}
