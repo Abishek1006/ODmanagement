@@ -27,12 +27,15 @@ exports.protect = async (req, res, next) => {
   }
 };
 
-exports.restrictToRole = (role) => {
+exports.restrictToRole = (roles) => {
   return (req, res, next) => {
-    if (req.user.role !== role) {
-      return res.status(403).json({ message: `Access restricted to ${role}s only.` });
+    const userRoles = [req.user.primaryRole, ...(req.user.secondaryRoles || [])];
+    const hasRequiredRole = Array.isArray(roles) ? roles.some(role => userRoles.includes(role)) : userRoles.includes(roles);
+    
+    if (hasRequiredRole) {
+      return next();
     }
-    next();
+    return res.status(403).json({ message: `Access restricted to ${Array.isArray(roles) ? roles.join(' or ') : roles} only.` });
   };
 };
 
@@ -41,4 +44,11 @@ exports.restrictToLeaderOrAdmin = (req, res, next) => {
     return next();
   }
   return res.status(403).json({ message: 'Access restricted to leaders or admins only.' });
+};
+
+exports.restrictToAdmin = (req, res, next) => {
+  if (req.user.isAdmin) {
+    return next();
+  }
+  return res.status(403).json({ message: 'Access restricted to admins only.' });
 };

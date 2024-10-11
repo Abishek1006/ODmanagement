@@ -1,6 +1,7 @@
 const OD = require('../models/od.model');
 const User = require('../models/user.model');
-
+const { createNotification } = require('./notification.controller');
+const Course = require('../models/course.model');
 // Create an OD request
 exports.createODRequest = async (req, res) => {
   try {
@@ -25,7 +26,6 @@ exports.createODRequest = async (req, res) => {
     res.status(400).json({ message: 'Error creating OD request', error });
   }
 };
-
 
 // Approve OD request
 exports.approveODRequest = async (req, res) => {
@@ -55,6 +55,16 @@ exports.approveODRequest = async (req, res) => {
     }
 
     await odRequest.save();
+
+    // Create notification for the student
+    await createNotification(
+      odRequest.studentId,
+      `Your OD request for ${odRequest.eventName} has been approved by ${req.user.role}`,
+      'OD_STATUS',
+      odRequest._id,
+      'OD'
+    );
+
     res.status(200).json({ message: 'OD request approved successfully.', odRequest });
   } catch (error) {
     console.error('Error approving OD request:', error);
@@ -79,6 +89,16 @@ exports.rejectODRequest = async (req, res) => {
     odRequest.status = 'rejected';
 
     await odRequest.save();
+
+    // Create notification for the student
+    await createNotification(
+      odRequest.studentId,
+      `Your OD request for ${odRequest.eventName} has been rejected by ${req.user.role}`,
+      'OD_STATUS',
+      odRequest._id,
+      'OD'
+    );
+
     res.status(200).json({ message: 'OD request rejected successfully.', odRequest });
   } catch (error) {
     console.error('Error rejecting OD request:', error);
@@ -94,5 +114,101 @@ exports.getODRequests = async (req, res) => {
   } catch (error) {
     console.error('Error fetching OD requests:', error);
     res.status(500).json({ message: 'Server error during fetching OD requests' });
+  }
+};
+exports.createImmediateODRequest = async (req, res) => {
+  try {
+    const { studentId, eventName, dateFrom, dateTo, reason } = req.body;
+
+    const odRequest = await OD.create({
+      studentId,
+      eventName,
+      dateFrom,
+      dateTo,
+      reason,
+      status: 'pending',
+      isImmediate: true
+    });
+
+    // Notify HOD about immediate OD request
+    await createNotification(
+      req.user.hodId,
+      `Immediate OD request from ${req.user.name} for ${eventName}`,
+      'OD_STATUS',
+      odRequest._id,
+      'OD'
+    );
+
+    res.status(201).json({ message: 'Immediate OD request created successfully', odRequest });
+  } catch (error) {
+    console.error('Error creating immediate OD request:', error);
+    res.status(400).json({ message: 'Error creating immediate OD request', error });
+  }
+};
+
+exports.approveImmediateOD = async (req, res) => {
+  try {
+    const { odId } = req.params;
+    const od = await OD.findById(odId);
+
+    if (!od) {
+      return res.status(404).json({ message: 'OD request not found.' });
+    }
+
+    if (!od.isImmediate) {
+      return res.status(400).json({ message: 'This is not an immediate OD request.' });
+    }
+
+    od.status = 'approved';
+    od.immediateApprover = req.user._id;
+    od.immediateApprovalDate = new Date();
+    await od.save();
+
+    // Notify student about approval
+    await createNotification(
+      od.studentId,
+      `Your immediate OD request for ${od.eventName} has been approved`,
+      'OD_STATUS',
+      od._id,
+      'OD'
+    );
+
+    res.status(200).json({ message: 'Immediate OD request approved successfully', od });
+  } catch (error) {
+    console.error('Error approving immediate OD request:', error);
+    res.status(400).json({ message: 'Error approving immediate OD request', error });
+  }
+};
+exports.getStudentsWithOD = async (req, res) => {
+  try {
+    const teacherId = req.user._id;
+    const courses = await Course.find({ teachers: teacherId });
+    const studentsWithOD = [];
+
+    for (const course of courses) {
+      const students = await User.find({ courses: course._id });
+      for (const student of students) {
+        const odRequests = await OD.find({
+          studentId: student._id,
+          status: 'approved',
+          dateFrom: { $lte: new Date() },
+          dateTo: { $gte: new Date() },
+        });
+        if (odRequests.length > 0) {
+          studentsWithOD.push({
+            studentName: student.name,
+            studentRollNo: student.rollNo,
+            eventName: odRequests[0].eventName,
+            dateFrom: odRequests[0].dateFrom,
+            dateTo: odRequests[0].dateTo,
+          });
+        }
+      }
+    }
+
+    res.status(200).json(studentsWithOD);
+  } catch (error) {
+    console.error('Error getting students with OD:', error);
+    res.status(500).json({ message: 'Server error during getting students with OD' });
   }
 };

@@ -1,49 +1,26 @@
-import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
-import CreatePage from "./pages/CreatePage.jsx";
-import HomePage from "./pages/HomePage.jsx";
-import Navbar from "./components/Navbar.jsx";
-import Sidebar from "./components/Sidebar.jsx";
-import Login from "./components/Login.jsx";
-import Register from "./components/Register.jsx";
-
-// Protected Route component
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
-  return children;
-};
+import React from 'react';
+import { Route, Routes } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import Login from './components/Login';
+import Register from './components/Register';
+import Dashboard from './components/Dashboard';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
-    <div className="app-container">
+    <div className="App">
+      {/* <Navbar /> */}
       <Routes>
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/" element={
-          <ProtectedRoute>
-            <div className="main-content">
-              <Navbar />
-              <div className="content-area">
-                <Sidebar />
-                <HomePage />
-              </div>
-            </div>
-          </ProtectedRoute>
-        } />
-        <Route path="/create" element={
-          <ProtectedRoute>
-            <div className="main-content">
-              <Navbar />
-              <div className="content-area">
-                <Sidebar />
-                <CreatePage />
-              </div>
-            </div>
-          </ProtectedRoute>
-        } />
+        <Route 
+          path="/dashboard" 
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          } 
+        />
       </Routes>
     </div>
   );

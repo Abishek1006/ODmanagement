@@ -10,9 +10,10 @@ const odSchema = new mongoose.Schema({
   tutorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   acId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   hodId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  approverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // New field for approver ID
-}, {
-  timestamps: true,
-});
+  approverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  isImmediate: { type: Boolean, default: false },
+  immediateApprover: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  immediateApprovalDate: { type: Date }
+}, { timestamps: true });
 
 module.exports = mongoose.model('OD', odSchema);

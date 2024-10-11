@@ -3,21 +3,19 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const { connectDB } = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/errormiddleware');
+
+// Import Routes
+const authRoutes = require('./routes/auth.routes');
+const eventRoutes = require('./routes/event.routes');
 const odRoutes = require('./routes/od.routes');
+const notificationRoutes = require('./routes/notification.routes');
+const userDetailsRoutes = require('./routes/userDetails.routes');
+const courseRoutes = require('./routes/course.routes'); // Add this line
 
 dotenv.config();
 
 // Connect to MongoDB
 connectDB();
-
-
-
-
-// Import Routes
-const authRoutes = require('./routes/auth.routes');
-const eventRoutes = require('./routes/event.routes');
-
-
 
 // Initialize express app
 const app = express();
@@ -29,9 +27,11 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
-
-// Other route imports...
 app.use('/api/od', odRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/user-details', userDetailsRoutes);
+app.use('/api/courses', courseRoutes); // Add this line
+
 // Error Handling Middlewares
 app.use(notFound);
 app.use(errorHandler);
