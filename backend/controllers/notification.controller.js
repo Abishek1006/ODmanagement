@@ -1,3 +1,4 @@
+// controllers/notification.controller.js
 const Notification = require('../models/notification.model');
 const asyncHandler = require('express-async-handler');
 

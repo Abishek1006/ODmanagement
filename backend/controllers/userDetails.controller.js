@@ -1,3 +1,4 @@
+// controllers/userDetails.controller.js
 const User = require('../models/user.model');
 const Course = require('../models/course.model');
 const asyncHandler = require('express-async-handler');

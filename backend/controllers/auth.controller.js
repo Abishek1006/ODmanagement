@@ -9,40 +9,64 @@ const generateToken = (id) => {
 
 exports.registerUser = async (req, res) => {
   try {
-    const { name, email, password, rollNo, department, isLeader, role } = req.body;
+    const { name, email, password, rollNo, department, staffId, primaryRole, isLeader, secondaryRoles } = req.body;
 
-    if (!name || !email || !password || !role || !department) {
+    // Basic required fields check
+    if (!name || !email || !password || !primaryRole || !department) {
       return res.status(400).json({ message: 'All fields are required.' });
     }
 
-    if (role === 'student' && !rollNo) {
+    // RollNo is required for students
+    if (primaryRole === 'student' && !rollNo) {
       return res.status(400).json({ message: 'Roll number is required for students.' });
     }
 
+    // StaffId is required for non-student roles
+    if (primaryRole !== 'student' && !staffId) {
+      return res.status(400).json({ message: 'Staff ID is required for non-student roles.' });
+    }
+
+    // SecondaryRoles must be empty if the primary role is student
+    if (primaryRole === 'student' && secondaryRoles && secondaryRoles.length > 0) {
+      return res.status(400).json({ message: 'Students cannot have secondary roles.' });
+    }
+
+    // isLeader must be false for teacher, ac, tutor, or hod
+    if (['teacher', 'ac', 'tutor', 'hod'].includes(primaryRole) && isLeader === true) {
+      return res.status(400).json({ message: 'isLeader cannot be true for teacher, tutor, ac, or hod.' });
+    }
+
+    // Check if user already exists with the same email
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).json({ message: 'User already exists.' });
     }
 
+    // Hash password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
+    // Create new user
     const newUser = new User({
       name,
       email,
       password: hashedPassword,
-      rollNo: role === 'student' ? rollNo : null,
+      rollNo: primaryRole === 'student' ? rollNo : null,
+      staffId: primaryRole !== 'student' ? staffId : null,
       department,
-      isLeader,
-      role,
+      primaryRole,
+      isLeader: primaryRole === 'student' ? isLeader : false,  // Students can be leaders, others cannot
+      secondaryRoles: primaryRole !== 'student' ? secondaryRoles : [], // Only non-students can have secondary roles
     });
 
+    // Save user to the database
     await newUser.save();
 
+    // Respond with created user details
     res.status(201).json({
       _id: newUser._id,
       email: newUser.email,
-      role: newUser.role,
+      primaryRole: newUser.primaryRole,
       token: generateToken(newUser._id),
     });
   } catch (error) {
@@ -50,6 +74,7 @@ exports.registerUser = async (req, res) => {
     res.status(500).json({ message: 'Server error during registration' });
   }
 };
+
 
 exports.loginUser = async (req, res) => {
   try {
@@ -68,7 +93,7 @@ exports.loginUser = async (req, res) => {
     res.status(200).json({
       _id: user._id,
       email: user.email,
-      role: user.role,
+      primaryRole: user.primaryRole, // Make sure this is correct
       token: generateToken(user._id),
     });
   } catch (error) {
@@ -76,3 +101,4 @@ exports.loginUser = async (req, res) => {
     res.status(500).json({ message: 'Server error during login' });
   }
 };
+

@@ -1,3 +1,4 @@
+// controllers/event.controller.js
 const OD = require('../models/od.model');
 const User = require('../models/user.model');
 const { createNotification } = require('./notification.controller');
@@ -30,28 +31,36 @@ exports.createODRequest = async (req, res) => {
 // Approve OD request
 exports.approveODRequest = async (req, res) => {
   try {
-    const odId = req.params.odId; // Extract odId directly
+    const odId = req.params.odId;
 
     const odRequest = await OD.findById(odId);
     if (!odRequest) return res.status(404).json({ message: 'OD request not found.' });
 
-    // Check if the user is the tutor or next approver
-    if (req.user._id.toString() !== odRequest.tutorId.toString() && req.user._id.toString() !== odRequest.acId?.toString() && req.user._id.toString() !== odRequest.hodId?.toString()) {
+    // Check if the user is authorized to approve this request
+    const userRole = req.user.primaryRole;
+    if (!['tutor', 'ac', 'hod'].includes(userRole)) {
       return res.status(403).json({ message: 'You are not authorized to approve this OD request.' });
     }
 
-    // Set approver ID
-    if (!odRequest.tutorId) {
-      odRequest.tutorId = req.user._id; // Set tutor if it is the first approval
-    } else if (!odRequest.acId) {
-      odRequest.acId = req.user._id; // Set AC if it is the second approval
-    } else if (!odRequest.hodId) {
-      odRequest.hodId = req.user._id; // Set HOD if it is the third approval
+    // Update the appropriate approval field based on the user's role
+    if (userRole === 'tutor' && !odRequest.tutorApproval) {
+      odRequest.tutorApproval = true;
+      odRequest.tutorId = req.user._id;
+    } else if (userRole === 'ac' && !odRequest.acApproval) {
+      odRequest.acApproval = true;
+      odRequest.acId = req.user._id;
+    } else if (userRole === 'hod' && !odRequest.hodApproval) {
+      odRequest.hodApproval = true;
+      odRequest.hodId = req.user._id;
+    } else {
+      return res.status(400).json({ message: 'This approval has already been made or is not in the correct order.' });
     }
 
-    // Check if all approvers have approved
-    if (odRequest.tutorId && odRequest.acId && odRequest.hodId) {
-      odRequest.status = 'approved'; // Change status to approved if all have approved
+    // Check if all approvals have been made
+    if (odRequest.tutorApproval && odRequest.acApproval && odRequest.hodApproval) {
+      odRequest.status = 'approved';
+    } else {
+      odRequest.status = 'pending'; // Ensure it stays pending until all approve
     }
 
     await odRequest.save();
@@ -59,13 +68,13 @@ exports.approveODRequest = async (req, res) => {
     // Create notification for the student
     await createNotification(
       odRequest.studentId,
-      `Your OD request for ${odRequest.eventName} has been approved by ${req.user.role}`,
+      `Your OD request for ${odRequest.eventName} has been approved by ${userRole.toUpperCase()}`,
       'OD_STATUS',
       odRequest._id,
       'OD'
     );
 
-    res.status(200).json({ message: 'OD request approved successfully.', odRequest });
+    res.status(200).json({ message: 'OD request updated successfully.', odRequest });
   } catch (error) {
     console.error('Error approving OD request:', error);
     res.status(500).json({ message: 'Server error during OD request approval' });
@@ -107,13 +116,14 @@ exports.rejectODRequest = async (req, res) => {
 };
 
 // Get OD requests for a user
+// controllers/od.controller.js
 exports.getODRequests = async (req, res) => {
   try {
     const odRequests = await OD.find({ studentId: req.user._id }).populate('tutorId acId hodId');
-    res.status(200).json(odRequests);
+    res.json(odRequests);
   } catch (error) {
     console.error('Error fetching OD requests:', error);
-    res.status(500).json({ message: 'Server error during fetching OD requests' });
+    res.status(500).json({ message: 'Error fetching OD requests' });
   }
 };
 exports.createImmediateODRequest = async (req, res) => {

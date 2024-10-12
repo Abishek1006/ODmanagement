@@ -1,3 +1,4 @@
+//e-od-system/backend/models/user.model.js
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
@@ -21,8 +22,8 @@ const userSchema = new mongoose.Schema({
   acId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   hodId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   courses: [{
-    courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
-    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
+    courseId: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Course' }],
+    teacherIds: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User ' }]
   }],
   isAdmin: { type: Boolean, default: false }
 });

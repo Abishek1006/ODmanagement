@@ -10,7 +10,9 @@ const odSchema = new mongoose.Schema({
   tutorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   acId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   hodId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  approverId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  tutorApproval: { type: Boolean, default: false },
+  acApproval: { type: Boolean, default: false },
+  hodApproval: { type: Boolean, default: false },
   isImmediate: { type: Boolean, default: false },
   immediateApprover: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   immediateApprovalDate: { type: Date }

@@ -1,8 +1,9 @@
+//backend/server.js
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const { connectDB } = require('./config/db');
-const { notFound, errorHandler } = require('./middleware/errormiddleware');
+const { notFound, errorHandler } = require('./middleware/error.middleware');
 
 // Import Routes
 const authRoutes = require('./routes/auth.routes');

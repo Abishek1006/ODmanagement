@@ -1,3 +1,4 @@
+//e-od-system/backend/models/course.model.js
 const mongoose = require('mongoose');
 
 const courseSchema = new mongoose.Schema({

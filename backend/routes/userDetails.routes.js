@@ -1,3 +1,4 @@
+// routes/USERdETAILS.route.js
 const express = require('express');
 const { getUserDetails, updateUserCourses, getTeacherCourses, updateTeacherCourses } = require('../controllers/userDetails.controller');
 const { protect, restrictToRole } = require('../middleware/auth.middleware');
