@@ -93,7 +93,7 @@ exports.loginUser = async (req, res) => {
     res.status(200).json({
       _id: user._id,
       email: user.email,
-      primaryRole: user.primaryRole, // Make sure this is correct
+      primaryRole: user.primaryRole, 
       token: generateToken(user._id),
     });
   } catch (error) {
