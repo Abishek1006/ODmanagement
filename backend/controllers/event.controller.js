@@ -1,8 +1,23 @@
-// controllers/event.controller.js
 const Event = require('../models/event.model');
+
+// Helper function to check if user can edit any event
+const canEditAnyEvent = (user) => {
+  return user.isAdmin || ['hod', 'ac'].includes(user.primaryRole) || user.secondaryRoles.some(role => ['hod', 'ac'].includes(role));
+};
+
+// Helper function to check if user can create events
+const canCreateEvent = (user) => {
+  return user.isAdmin || ['ac', 'hod', 'teacher'].includes(user.primaryRole) || 
+         (user.primaryRole === 'student' && user.isLeader) ||
+         user.secondaryRoles.some(role => ['ac', 'hod', 'teacher'].includes(role));
+};
 
 exports.createEvent = async (req, res) => {
   try {
+    if (!canCreateEvent(req.user)) {
+      return res.status(403).json({ message: 'You do not have permission to create events' });
+    }
+
     const { name, prize, entryFee, entryType, imageUrl } = req.body;
 
     if (!name || !prize || !entryFee || !entryType) {
@@ -56,8 +71,8 @@ exports.updateEvent = async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    if (event.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'You can only update your own events' });
+    if (event.createdBy.toString() !== req.user._id.toString() && !canEditAnyEvent(req.user)) {
+      return res.status(403).json({ message: 'You do not have permission to update this event' });
     }
 
     const { name, prize, entryFee, entryType, imageUrl } = req.body;
@@ -83,8 +98,8 @@ exports.deleteEvent = async (req, res) => {
       return res.status(404).json({ message: 'Event not found' });
     }
 
-    if (event.createdBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ message: 'You can only delete your own events' });
+    if (event.createdBy.toString() !== req.user._id.toString() && !canEditAnyEvent(req.user)) {
+      return res.status(403).json({ message: 'You do not have permission to delete this event' });
     }
 
     await Event.findByIdAndDelete(req.params.id);
@@ -97,6 +112,10 @@ exports.deleteEvent = async (req, res) => {
 
 exports.registerForEvent = async (req, res) => {
   try {
+    if (req.user.primaryRole !== 'student') {
+      return res.status(403).json({ message: 'Only students can register for events' });
+    }
+
     const event = await Event.findById(req.params.id);
 
     if (!event) {
