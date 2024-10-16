@@ -11,15 +11,16 @@ const StudentDashboard = () => {
           <li className="mb-4"><a href="#events">Events</a></li>
           <li className="mb-4"><a href="#details">Personal Details</a></li>
           <li className="mb-4"><a href="#od">OD Section</a></li>
+          <li className='mb-4'> <a href="#eventsection"> event section</a></li>
         </ul>
       </nav>
 
-      <main className="w-3/4 p-8">
+      {/* <main className="w-3/4 p-8">
         <section id="events">
           <EventSection />
         </section>
       
-      </main>
+      </main> */}
     </div>
   );
 };
