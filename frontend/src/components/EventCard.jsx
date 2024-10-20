@@ -1,26 +1,39 @@
 // src/components/EventCard.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { registerForEvent, requestOD } from '../services/eventservice';
 
-const EventCard = ({ event, onRegister, onRequestOD }) => {
+const EventCard = ({ event }) => {
   const navigate = useNavigate();
+  const [showODForm, setShowODForm] = useState(false);
+  const [odData, setODData] = useState({
+    dateFrom: '',
+    dateTo: '',
+    reason: ''
+  });
 
-  const handleRegister = async (eventId) => {
+  const handleRegister = async () => {
     try {
-      await onRegister(eventId); // Registering for the event
-      navigate('/student-dashboard'); // Optional: redirect after registration
+      await registerForEvent(event._id);
+      navigate('/student-dashboard');
     } catch (error) {
       console.error('Error during event registration:', error);
     }
   };
 
-  const handleRequestOD = async (eventId) => {
+  const handleRequestOD = async (e) => {
+    e.preventDefault();
     try {
-      await onRequestOD(eventId); // Requesting OD for the event
-      navigate('/student-dashboard/od-section'); // Optional: redirect to OD section after request
+      await requestOD(event._id, odData);
+      setShowODForm(false);
+      navigate('/student-dashboard/od-section');
     } catch (error) {
       console.error('Error requesting OD:', error);
     }
+  };
+
+  const handleODInputChange = (e) => {
+    setODData({ ...odData, [e.target.name]: e.target.value });
   };
 
   return (
@@ -32,17 +45,45 @@ const EventCard = ({ event, onRegister, onRequestOD }) => {
       <div className="mt-4">
         <button
           className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
-          onClick={() => handleRegister(event._id)}
+          onClick={handleRegister}
         >
           Register
         </button>
         <button
           className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded ml-4"
-          onClick={() => handleRequestOD(event._id)}
+          onClick={() => setShowODForm(!showODForm)}
         >
           Request OD
         </button>
       </div>
+      {showODForm && (
+        <form onSubmit={handleRequestOD} className="mt-4">
+          <input
+            type="date"
+            name="dateFrom"
+            value={odData.dateFrom}
+            onChange={handleODInputChange}
+            required
+          />
+          <input
+            type="date"
+            name="dateTo"
+            value={odData.dateTo}
+            onChange={handleODInputChange}
+            required
+          />
+          <textarea
+            name="reason"
+            value={odData.reason}
+            onChange={handleODInputChange}
+            placeholder="Reason for OD"
+            required
+          />
+          <button type="submit" className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
+            Submit OD Request
+          </button>
+        </form>
+      )}
     </div>
   );
 };

@@ -6,8 +6,8 @@ import StudentDashboard from './pages/StudentDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import EventSection from './components/EventSection';
 import PersonalDetails from './components/PersonalDetails';
-import ODSection from './components/ODsection';
-// import CreateEvent from './components/CreateEvent';
+import ODSection from './components/ODSection';
+import CreateEvent from './components/CreateEvent';
 
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
           <Route path="events" element={<EventSection />} />
           <Route path="personal-details" element={<PersonalDetails />} />
           <Route path="od-section" element={<ODSection />} />
-          {/* <Route path="create-event" element={<CreateEvent />} /> */}
+          <Route path="create-event" element={<CreateEvent />} />
         </Route>
         <Route path="/teacher-dashboard" element={<TeacherDashboard />} />
       </Routes>
