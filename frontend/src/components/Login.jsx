@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import api from '../services/api';
 import snrlogo from "../assets/snrlogo.png";
 import sreclogo from "../assets/sreclogo.png";
 import image1 from "../assets/image1.png";
@@ -61,9 +62,13 @@ function Login() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+            const response = await api.post('/auth/login', { email, password });
             localStorage.setItem('token', response.data.token);
-            localStorage.setItem('userRole', response.data.primaryRole);
+            api.setUserRoles(
+                response.data.primaryRole,
+                response.data.secondaryRoles || [],
+                response.data.isLeader || false
+            );
             if (response.data.primaryRole === 'student') {
                 navigate('/student-dashboard');
             } else {

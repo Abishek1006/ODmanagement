@@ -1,0 +1,98 @@
+Project Overview:
+The E-OD: Events and OD Management Platform is designed to streamline the on-duty (OD) approval process for students participating in events, address administrative issues, and improve communication between students and faculty. The platform replaces the current cumbersome, paper-based system with an online solution that automates OD requests, tracks approvals, and eliminates the need for WhatsApp group notifications about absences.
+
+Key Problems Addressed:
+Cumbersome OD Process: Students currently face a long process of getting physical forms signed by tutors, Academic Coordinators (ACs), and Heads of Departments (HODs).
+Cluttered Communication: Students post signed OD forms in WhatsApp groups, leading to unnecessary and frequent messages.
+Verification Challenges: There’s no streamlined way to verify and track OD requests, leading to the risk of unauthorized or proxy ODs.
+Platform Goals:
+Simplify and automate the OD request and approval process.
+Provide a unified platform for event registration and OD management.
+Allow real-time tracking of OD requests through a multi-step approval process.
+Reduce WhatsApp group clutter by handling OD communication through the platform.
+Facilitate immediate ODs for urgent or external events.
+Offer a robust system for event organizers to manage event participants and OD-related activities.
+Target Users:
+Students: Request ODs for events, view event details, track OD status.
+Tutors, ACs, HODs: Approve or reject OD requests based on their role in the hierarchy.
+Teachers (who are not tutors, ACs, or HODs): Manage students' ODs and their attendance without extra notifications.
+Event Organizers: Manage event details, participants, and ODs for their events.
+Admins: Oversee user management and event organization.
+Core Features and Modules:
+1. Authentication and User Management:
+User Roles: Students, Tutors, ACs, HODs, Teachers, Event Organizers, Admins.
+User Credentials:
+Students: Name, email, password, roll number, department, and assigned tutor, AC, and HOD.
+Teachers: Name, email, staff ID, courses taught.
+Authentication: Users log in with email and password. JWT-based authentication is implemented to secure sessions.
+Role-Based Access: Middleware checks for access based on user roles (e.g., tutors can only approve requests for students they handle, event organizers can create events).
+2. Event Management:
+Event Creation:
+Students with the isLeader or isOrganizer role can create events using the Event Management System.
+Events include details like event name, description, date, location, and maximum participants.
+Event Registration: Students can view and register for events.
+Event Participation Management: Event organizers can manage participant lists, including viewing registered participants and their OD statuses.
+3. OD Request and Approval System:
+OD Request Workflow:
+Students can request ODs for registered events through the platform.
+Students fill in details such as event name, date, and reason for OD.
+Hierarchical Approval:
+Step 1: Tutor approves or rejects the request.
+Step 2: If approved by the tutor, the request moves to the AC.
+Step 3: If approved by the AC, it moves to the HOD.
+Step 4: Upon HOD approval, the OD is granted.
+If rejected at any stage, the request is marked as rejected and not forwarded.
+OD Status Notifications:
+Students receive notifications for each stage of the approval process (pending, approved, rejected).
+Tutors, ACs, and HODs are notified of new requests awaiting their approval.
+4. Immediate OD Requests:
+Urgent Requests:
+Students can submit immediate OD requests for urgent or external events (not pre-registered).
+These requests include editable fields like reason, event details, and date.
+The request is digitally signed and approved by the HOD.
+Immediate OD Form Generation:
+After approval, a pre-built OD form is generated, which students can download.
+5. Notifications System:
+Student Notifications:
+Students are alerted when their OD request is approved, rejected, or awaiting action.
+Event reminders are also sent for upcoming events.
+Teacher Notifications:
+Teachers are notified about students' OD statuses in courses they handle, reducing the need for WhatsApp group messages.
+6. Teacher Dashboard:
+Courses Overview:
+Teachers can view all courses they handle and select a course to manage OD-related information.
+OD Attendance Management:
+For each course, teachers can see which students have been approved for OD, preventing unnecessary attendance issues.
+OD records help in marking attendance appropriately without requiring direct communication from students.
+7. Student Dashboard:
+Event Registration and OD Requests: Students can browse available events, register, and apply for ODs directly from the event page.
+Track OD Requests: A separate section shows pending, approved, and rejected ODs, allowing students to track their requests in real-time.
+Immediate OD Requests: A button is available for submitting urgent OD requests for unforeseen circumstances.
+8. Admin Dashboard:
+User and Event Management:
+Admins can manage users (students, teachers, tutors, ACs, HODs, event organizers).
+Admins can oversee event creation, approve or reject events, and manage participant lists.
+Technical Architecture:
+1. Frontend:
+Framework: React (or any frontend framework you choose).
+Components:
+Login/Register Forms.
+Event List and Registration Form.
+OD Request Forms (Standard and Immediate).
+Event Creation/Management Form.
+Notifications Panel.
+Dashboard views for Students and Teachers.
+2. Backend:
+Framework: Node.js with Express.
+Database: MongoDB for storing users, events, and OD requests.
+APIs:
+User Authentication (JWT).
+Event Management (Create, Update, Delete, Retrieve).
+OD Request Management (Create, Approve, Reject, Fetch).
+Notifications API for real-time status updates.
+Middleware:
+Authentication Middleware: Verifies user tokens.
+Role-Based Access Control (RBAC): Ensures that only authorized users access certain routes (e.g., only tutors can approve ODs).
+Approval Flow Middleware: Manages the hierarchical approval process.
+3. Notifications and Alerts:
+Email/SMS (Optional): Integrate notifications via email or SMS if required.

@@ -1,0 +1,136 @@
+/* TeacherDashboard.css */
+
+.dashboard {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  
+  .dashboard-content {
+    display: flex;
+    flex: 1;
+  }
+  
+  .sidebar {
+    width: 250px;
+    background-color: #1e40af;
+    color: white;
+    padding: 1rem;
+  }
+  
+  .sidebar ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .sidebar-button {
+    width: 100%;
+    text-align: left;
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    background-color: transparent;
+    border: none;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+  
+  .sidebar-button:hover {
+    background-color: #2563eb;
+  }
+  
+  .sidebar-button.active {
+    background-color: #3b82f6;
+  }
+  
+  .main-content {
+    flex: 1;
+    padding: 2rem;
+    background-color: #f3f4f6;
+  }
+  
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #1e40af;
+  }
+  
+  .content-card {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+  }
+  
+  .content-card h3 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+  }
+  
+  .event-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .event-list li {
+    display: flex;
+    margin-bottom: 0.5rem;
+  }
+  
+  .event-date {
+    width: 120px;
+    font-weight: bold;
+    color: #1e40af;
+  }
+  
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .info-label {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  
+  .info-value {
+    font-weight: 500;
+  }
+  
+  .od-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .od-table th,
+  .od-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  
+  .od-table th {
+    font-weight: bold;
+    background-color: #f3f4f6;
+  }
+  
+  .status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+  }
+  
+  .status.approved {
+    background-color: #d1fae5;
+    color: #065f46;
+  }
+  
+  .status.pending {
+    background-color: #fef3c7;
+    color: #92400e;
+  }

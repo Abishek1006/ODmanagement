@@ -1,3 +1,4 @@
+
 // src/components/EventSection.jsx
 import React, { useEffect, useState } from 'react';
 import { getEvents, registerForEvent, requestOD } from '../services/eventservice';
@@ -6,15 +7,17 @@ import EventCard from './EventCard';
 const EventSection = () => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchEvents = async () => {
       try {
         const data = await getEvents();
-        setEvents(data.events);
+        setEvents(data);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching events:', error);
+        setError('Failed to load events. Please try again later.');
         setLoading(false);
       }
     };
@@ -25,8 +28,10 @@ const EventSection = () => {
     try {
       await registerForEvent(eventId);
       alert('Successfully registered for the event');
+      // Optionally, refresh the events list here
     } catch (error) {
       console.error('Error registering for the event:', error);
+      alert('Failed to register for the event. Please try again.');
     }
   };
 
@@ -36,10 +41,12 @@ const EventSection = () => {
       alert('OD request sent');
     } catch (error) {
       console.error('Error requesting OD:', error);
+      alert('Failed to request OD. Please try again.');
     }
   };
 
   if (loading) return <p>Loading events...</p>;
+  if (error) return <p>{error}</p>;
 
   return (
     <div className="p-4">
