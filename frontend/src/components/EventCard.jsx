@@ -24,11 +24,14 @@ const EventCard = ({ event }) => {
   const handleRequestOD = async (e) => {
     e.preventDefault();
     try {
-      await requestOD(event._id, odData);
+      const response = await api.post('/od', {
+        ...odData,
+        eventId: event._id
+      });
       setShowODForm(false);
-      navigate('/student-dashboard/od-section');
+      alert('OD request submitted successfully');
     } catch (error) {
-      console.error('Error requesting OD:', error);
+      alert('Failed to submit OD request');
     }
   };
 
@@ -37,55 +40,43 @@ const EventCard = ({ event }) => {
   };
 
   return (
-    <div className="border rounded-lg shadow-md p-4 m-4">
-      <h3 className="text-xl font-bold">{event.name}</h3>
-      <p className="text-gray-700">Prize: {event.prize}</p>
-      <p className="text-gray-700">Entry Fee: {event.entryFee}</p>
-      <p className="text-gray-700">Type: {event.entryType}</p>
-      <div className="mt-4">
-        <button
-          className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
-          onClick={handleRegister}
-        >
-          Register
-        </button>
-        <button
-          className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded ml-4"
-          onClick={() => setShowODForm(!showODForm)}
-        >
-          Request OD
-        </button>
+    <div className="event-card">
+      <img src={event.imageUrl || 'default-event-image.jpg'} alt={event.name} />
+      <div className="event-details">
+        <h3>{event.name}</h3>
+        <p>Prize: {event.prize}</p>
+        <p>Entry Fee: ₹{event.entryFee}</p>
+        <p>Type: {event.entryType}</p>
+        <div className="event-actions">
+          <button onClick={() => handleRegister(event._id)}>Register</button>
+          <button onClick={() => setShowODForm(!showODForm)}>Request OD</button>
+        </div>
+        {showODForm && (
+          <form onSubmit={handleRequestOD} className="od-form">
+            <input
+              type="date"
+              name="dateFrom"
+              value={odData.dateFrom}
+              onChange={(e) => setODData({...odData, dateFrom: e.target.value})}
+              required
+            />
+            <input
+              type="date"
+              name="dateTo"
+              value={odData.dateTo}
+              onChange={(e) => setODData({...odData, dateTo: e.target.value})}
+              required
+            />
+            <textarea
+              name="reason"
+              value={odData.reason}
+              onChange={(e) => setODData({...odData, reason: e.target.value})}
+              required
+            />
+            <button type="submit">Submit OD Request</button>
+          </form>
+        )}
       </div>
-      {showODForm && (
-        <form onSubmit={handleRequestOD} className="mt-4">
-          <input
-            type="date"
-            name="dateFrom"
-            value={odData.dateFrom}
-            onChange={handleODInputChange}
-            required
-          />
-          <input
-            type="date"
-            name="dateTo"
-            value={odData.dateTo}
-            onChange={handleODInputChange}
-            required
-          />
-          <textarea
-            name="reason"
-            value={odData.reason}
-            onChange={handleODInputChange}
-            placeholder="Reason for OD"
-            required
-          />
-          <button type="submit" className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded">
-            Submit OD Request
-          </button>
-        </form>
-      )}
     </div>
   );
-};
-
-export default EventCard;
+};export default EventCard;

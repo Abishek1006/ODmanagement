@@ -96,3 +96,83 @@ Role-Based Access Control (RBAC): Ensures that only authorized users access cert
 Approval Flow Middleware: Manages the hierarchical approval process.
 3. Notifications and Alerts:
 Email/SMS (Optional): Integrate notifications via email or SMS if required.
+___________FILE STRUCTURE_________
+E-ODSYSTEM
+-backend
+--config
+ |-->db.js
+--controllers
+ |-->auth.controller.js
+ |-->course.controller.js
+ |-->event.controller.js
+ |-->notification.controller.js
+ |-->od.controller.js
+ |-->teacher.controller.js
+ |-->userDetails.controller.js
+--middleware
+ |-->auth.middleware.js
+ |-->error.middleware.js
+--models
+ |-->course.model.js
+ |-->event.model.js
+ |-->notification.model.js
+ |-->od.model.js
+ |-->registration.model.js
+ |-->user.model.js
+--routes
+ |-->auth.routes.js
+ |-->course.routes.js
+ |-->event.routes.js
+ |-->notification.routes.js
+ |-->od.routes.js
+ |-->teacher.routes.js
+ |-->user.routes.js
+ |-->userDetails.routes.js
+server.js
+-frontend 
+--Src
+---asserts
+---components
+  |-->EventCard.jsx
+  |-->EventSection.jsx
+  |-->Login.css
+  |-->Login.jsx
+  |-->Navbar.css
+  |-->Navbar.jsx
+  |-->ODsection.jsx
+  |-->PersonalDetails.jsx
+  |-->Register.jsx
+---CSS
+  |-->student.css
+  |-->teacher.css
+---pages
+  |-->StudentDashboard.jsx
+  |-->TeacherDashboard.jsx
+---services
+  |-->api.js
+  |-->eventservice.js
+App.jsx
+main.jsx
+package-lock.json
+package.json
+projectDescription.txt
+____________________________________________
+let me describe how my frontend should look like:
+FOR STUDENTS DASHBOARD(HOMEPAGE):
+ dashboard showing their own details.
+ in that dashboard there the is a sidebar(navigation bar) which has 
+1. list of events- where all the upcoming events will be listed in card structure and i should also have a button named register and request OD when student click on he can fill the details or the details for od can be automatically fetched from userdetails itself and send OD request.
+2.personal details - where the students details will be displayed and the can update their credentials like changing name, changing the course they are taking , tutor ,ac, hod etc..
+3.OD section - in this section the student can see all the od he/she been requested and check the status of approval of the od.
+for now this is enough now. we can do more later.
+
+FOR TEACHERS DASHBOARD(HOMEPAGE):
+1.personal details - where the teacher details will be displayed and the can update their credentials like changing courses the teaches.
+2.OD section - where all the of request from their students(students who have put this teacher as their tutor or ac or hod) will be listed in the for of excel sheet like structure with the details of the od request and also have a checkbox to approve and reject od request.
+3.course section - where all the course he/she teaches will be listed in card view when the teacher clicks on it all the students who got OD will be listed with details of the od.
+for now this is enough now. we can do more later.
+--------------------
+only use normal css don't use tailwind css.
+i can create css later so only give me jsx file.
+i completed implementing login and register.
+i am not going to add more backend and leave backend. i started working on frontend.
