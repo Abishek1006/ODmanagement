@@ -1,0 +1,19 @@
+.personal-details {
+  background: white;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.details-view p {
+  margin: 10px 0;
+  font-size: 16px;
+}
+
+.courses-section {
+  margin-top: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}

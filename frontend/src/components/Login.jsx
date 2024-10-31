@@ -64,11 +64,17 @@ function Login() {
         try {
             const response = await api.post('/auth/login', { email, password });
             localStorage.setItem('token', response.data.token);
+            
+            // Fetch complete user details after login
+            const userDetailsResponse = await api.get('/user-details');
+            api.setUserDetails(userDetailsResponse.data);
+            
             api.setUserRoles(
                 response.data.primaryRole,
                 response.data.secondaryRoles || [],
                 response.data.isLeader || false
             );
+            
             if (response.data.primaryRole === 'student') {
                 navigate('/student-dashboard');
             } else {

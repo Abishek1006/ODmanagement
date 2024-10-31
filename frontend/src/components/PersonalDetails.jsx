@@ -1,69 +1,126 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-
+import '../css/PersonalDetails.css';
 const PersonalDetails = () => {
   const [userDetails, setUserDetails] = useState({});
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [courseInput, setCourseInput] = useState('');
+  const [selectedTeachers, setSelectedTeachers] = useState({});
+  const [availableTeachers, setAvailableTeachers] = useState({});
 
   useEffect(() => {
-    const fetchUserDetails = async () => {
-      try {
-        const response = await api.get('/user-details');
-        setUserDetails(response.data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching user details:', error);
-        setError('Failed to load user details. Please try again later.');
-        setLoading(false);
-      }
-    };
     fetchUserDetails();
   }, []);
+
+  const fetchUserDetails = async () => {
+    try {
+      const response = await api.get('/user-details');
+      setUserDetails(response.data);
+      setLoading(false);
+    } catch (error) {
+      setError('Failed to load user details');
+      setLoading(false);
+    }
+  };
+
+  const handleCourseSearch = async () => {
+    try {
+      const response = await api.get(`/courses/${courseInput}`);
+      const teachersResponse = await api.get(`/user-details/course-teachers/${courseInput}`);
+      setAvailableTeachers({
+        ...availableTeachers,
+        [response.data._id]: teachersResponse.data
+      });
+    } catch (error) {
+      setError('Course not found');
+    }
+  };
+
+  const handleTeacherSelection = (courseId, teacherId) => {
+    setSelectedTeachers({
+      ...selectedTeachers,
+      [courseId]: teacherId
+    });
+  };
 
   const handleUpdate = async (e) => {
     e.preventDefault();
     try {
-      await api.put('/user-details', userDetails);
+      const updatedCourses = Object.entries(selectedTeachers).map(([courseId, teacherId]) => ({
+        courseId,
+        teacherId
+      }));
+      
+      await api.put('/user-details/courses', { courses: updatedCourses });
       setIsEditing(false);
+      fetchUserDetails();
     } catch (error) {
-      console.error('Error updating user details:', error);
+      setError('Failed to update courses');
     }
   };
 
-  const handleChange = (e) => {
-    setUserDetails({ ...userDetails, [e.target.name]: e.target.value });
-  };
-
-  if (loading) return <p>Loading user details...</p>;
-  if (error) return <p>{error}</p>;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Personal Details</h2>
+    <div className="personal-details">
+      <h2>Personal Details</h2>
       {!isEditing ? (
-        <div>
-          <p>Name: {userDetails.name}</p>
-          <p>Email: {userDetails.email}</p>
-          <p>Roll Number: {userDetails.rollNo}</p>
-          <p>Department: {userDetails.department}</p>
-          <button onClick={() => setIsEditing(true)} className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mt-4">
-            Edit
-          </button>
+        <div className="details-view">
+          <p><strong>Name:</strong> {userDetails.name}</p>
+          <p><strong>Email:</strong> {userDetails.email}</p>
+          <p><strong>Roll Number:</strong> {userDetails.rollNo}</p>
+          <p><strong>Department:</strong> {userDetails.department}</p>
+          
+          <div className="courses-section">
+            <h3>Enrolled Courses:</h3>
+            <ul>
+              {userDetails.courses?.map(course => (
+                <li key={course.courseId._id}>
+                  {course.courseId.courseName} - {course.teacherId.name}
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          <button onClick={() => setIsEditing(true)}>Edit Details</button>
         </div>
       ) : (
         <form onSubmit={handleUpdate}>
-          <input name="name" value={userDetails.name} onChange={handleChange} />
-          <input name="email" value={userDetails.email} onChange={handleChange} />
-          <input name="rollNo" value={userDetails.rollNo} onChange={handleChange} />
-          <input name="department" value={userDetails.department} onChange={handleChange} />
-          <button type="submit" className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded mt-4">
-            Save
-          </button>
-          <button onClick={() => setIsEditing(false)} className="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded mt-4 ml-2">
-            Cancel
-          </button>
+          <div className="form-group">
+            <label>Add Course:</label>
+            <input
+              type="text"
+              value={courseInput}
+              onChange={(e) => setCourseInput(e.target.value)}
+              placeholder="Enter Course ID"
+            />
+            <button type="button" onClick={handleCourseSearch}>Search Course</button>
+          </div>
+
+          {Object.entries(availableTeachers).map(([courseId, teachers]) => (
+            <div key={courseId} className="form-group">
+              <label>Select Teacher for {courseId}:</label>
+              <select
+                value={selectedTeachers[courseId] || ''}
+                onChange={(e) => handleTeacherSelection(courseId, e.target.value)}
+              >
+                <option value="">Select Teacher</option>
+                {teachers.map(teacher => (
+                  <option key={teacher._id} value={teacher._id}>
+                    {teacher.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
+
+          <div className="button-group">
+            <button type="submit">Save Changes</button>
+            <button type="button" onClick={() => setIsEditing(false)}>Cancel</button>
+          </div>
         </form>
       )}
     </div>

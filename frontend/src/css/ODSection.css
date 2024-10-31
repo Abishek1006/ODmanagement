@@ -1,0 +1,28 @@
+.od-section {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.od-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.od-table th,
+.od-table td {
+  padding: 12px;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.od-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.status-pending { color: #f59e0b; }
+.status-approved { color: #10b981; }
+.status-rejected { color: #ef4444; }

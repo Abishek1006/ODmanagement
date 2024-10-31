@@ -1,4 +1,4 @@
-
+import '../css/EventSection.css';
 // src/components/EventSection.jsx
 import React, { useEffect, useState } from 'react';
 import { getEvents } from '../services/eventservice';

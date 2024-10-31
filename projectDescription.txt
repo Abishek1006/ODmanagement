@@ -176,3 +176,4 @@ only use normal css don't use tailwind css.
 i can create css later so only give me jsx file.
 i completed implementing login and register.
 i am not going to add more backend and leave backend. i started working on frontend.
+first i want to complete frontend for student side generate code related to student side.
