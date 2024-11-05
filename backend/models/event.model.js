@@ -7,6 +7,7 @@ const eventSchema = new mongoose.Schema({
   entryFee: { type: Number, required: true },
   entryType: { type: String, enum: ['individual', 'team'], required: true },
   imageUrl: { type: String },
+  details: { type: String }, // New field for comprehensive event details
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   registrations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, {
@@ -14,3 +15,4 @@ const eventSchema = new mongoose.Schema({
 });
 
 module.exports = mongoose.model('Event', eventSchema);
+

@@ -1,15 +1,24 @@
-// routes/USERdETAILS.route.js
 const express = require('express');
-const { getUserDetails, updateUserCourses, getTeacherCourses, updateTeacherCourses, getCourseTeachers } = require('../controllers/userDetails.controller');
-const { protect, restrictToRole } = require('../middleware/auth.middleware');
+const { 
+  getUserDetails, 
+  addCourse,
+  deleteCourse,
+  updateMentors,
+  getCourseTeachers,
+  getAllTeachers
+} = require('../controllers/userDetails.controller');
+const { protect } = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
+// Core routes
 router.get('/', protect, getUserDetails);
-router.put('/courses', protect, updateUserCourses);
-router.get('/teacher-courses', protect, restrictToRole(['teacher', 'tutor', 'ac', 'hod']), getTeacherCourses);
-router.put('/teacher-courses', protect, restrictToRole(['teacher', 'tutor', 'ac', 'hod']), updateTeacherCourses);
+router.post('/courses', protect, addCourse);
+router.delete('/courses/:courseId', protect, deleteCourse);
+router.put('/mentors', protect, updateMentors);
 
+// Teacher-related routes
 router.get('/course-teachers/:courseId', protect, getCourseTeachers);
-module.exports = router;
+router.get('/all-teachers', protect, getAllTeachers);
 
+module.exports = router;

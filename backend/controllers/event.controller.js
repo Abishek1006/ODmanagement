@@ -18,7 +18,7 @@ exports.createEvent = async (req, res) => {
       return res.status(403).json({ message: 'You do not have permission to create events' });
     }
 
-    const { name, prize, entryFee, entryType, imageUrl } = req.body;
+    const { name, prize, entryFee, entryType, imageUrl, details } = req.body;
 
     if (!name || !prize || !entryFee || !entryType) {
       return res.status(400).json({ message: 'Please fill in all required fields' });
@@ -30,6 +30,7 @@ exports.createEvent = async (req, res) => {
       entryFee,
       entryType,
       imageUrl,
+      details,
       createdBy: req.user._id,
     });
 
@@ -75,12 +76,13 @@ exports.updateEvent = async (req, res) => {
       return res.status(403).json({ message: 'You do not have permission to update this event' });
     }
 
-    const { name, prize, entryFee, entryType, imageUrl } = req.body;
+    const { name, prize, entryFee, entryType, imageUrl, details } = req.body;
     event.name = name || event.name;
     event.prize = prize || event.prize;
     event.entryFee = entryFee || event.entryFee;
     event.entryType = entryType || event.entryType;
     event.imageUrl = imageUrl || event.imageUrl;
+    event.details = details || event.details; // Update details
 
     const updatedEvent = await event.save();
     res.status(200).json(updatedEvent);

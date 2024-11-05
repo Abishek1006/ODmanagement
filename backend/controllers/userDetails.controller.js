@@ -1,7 +1,7 @@
 // controllers/userDetails.controller.js
+const asyncHandler = require('express-async-handler');
 const User = require('../models/user.model');
 const Course = require('../models/course.model');
-const asyncHandler = require('express-async-handler');
 
 exports.getUserDetails = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
@@ -13,12 +13,46 @@ exports.getUserDetails = asyncHandler(async (req, res) => {
   res.json(user);
 });
 
-exports.updateUserCourses = asyncHandler(async (req, res) => {
-  const { courses } = req.body;
+exports.addCourse = asyncHandler(async (req, res) => {
+  const { courseId, teacherId } = req.body;
   const user = await User.findById(req.user._id);
-  user.courses = courses;
+  
+  user.courses.push({ courseId, teacherId });
+  const updatedUser = await user.save();
+  
+  const populatedUser = await User.findById(updatedUser._id)
+    .populate('courses.courseId')
+    .populate('courses.teacherId');
+    
+  res.json(populatedUser);
+});
+
+exports.deleteCourse = asyncHandler(async (req, res) => {
+  const { courseId } = req.params;
+  const user = await User.findById(req.user._id);
+  
+  user.courses = user.courses.filter(course => course.courseId.toString() !== courseId);
   await user.save();
-  res.json({ message: 'Courses updated successfully', courses: user.courses });
+  
+  res.json({ message: 'Course deleted successfully' });
+});
+
+exports.updateMentors = asyncHandler(async (req, res) => {
+  const { tutorId, acId, hodId } = req.body;
+  const user = await User.findById(req.user._id);
+  
+  if (tutorId) user.tutorId = tutorId;
+  if (acId) user.acId = acId;
+  if (hodId) user.hodId = hodId;
+  
+  const updatedUser = await user.save();
+  
+  const populatedUser = await User.findById(updatedUser._id)
+    .populate('tutorId')
+    .populate('acId')
+    .populate('hodId');
+    
+  res.json(populatedUser);
 });
 
 exports.getCourseTeachers = asyncHandler(async (req, res) => {
@@ -31,14 +65,7 @@ exports.getCourseTeachers = asyncHandler(async (req, res) => {
   res.json(course.teachers);
 });
 
-exports.getTeacherCourses = asyncHandler(async (req, res) => {
-  const courses = await Course.find({ teachers: req.user._id });
-  res.json(courses);
-});
-
-exports.updateTeacherCourses = asyncHandler(async (req, res) => {
-  const { courseIds } = req.body;
-  await Course.updateMany({ teachers: req.user._id }, { $pull: { teachers: req.user._id } });
-  await Course.updateMany({ _id: { $in: courseIds } }, { $addToSet: { teachers: req.user._id } });
-  res.json({ message: 'Teacher courses updated successfully' });
+exports.getAllTeachers = asyncHandler(async (req, res) => {
+  const teachers = await User.find({ primaryRole: 'teacher' }, 'name _id');
+  res.json(teachers);
 });

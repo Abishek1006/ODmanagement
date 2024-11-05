@@ -7,6 +7,7 @@ import api from '../services/api';
 const EventCard = ({ event }) => {
   const navigate = useNavigate();
   const [showODForm, setShowODForm] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [odData, setODData] = useState({
     dateFrom: '',
     dateTo: '',
@@ -15,6 +16,10 @@ const EventCard = ({ event }) => {
   });
   const [dateError, setDateError] = useState('');
 
+  // Get user roles from the API to determine visibility
+  const user = api.getUserRoles();
+
+  // Function to validate date inputs for the OD request
   const validateDates = () => {
     const fromDate = new Date(odData.dateFrom);
     const toDate = new Date(odData.dateTo);
@@ -36,6 +41,7 @@ const EventCard = ({ event }) => {
     return true;
   };
 
+  // Function to handle the OD request submission
   const handleRequestOD = async (e) => {
     e.preventDefault();
     if (!validateDates()) return;
@@ -43,7 +49,7 @@ const EventCard = ({ event }) => {
     const userDetails = api.getUserDetails();
     
     try {
-      const response = await api.post('/od', {
+      await api.post('/od', {
         studentId: userDetails._id,
         eventName: event.name,
         dateFrom: odData.dateFrom,
@@ -60,15 +66,44 @@ const EventCard = ({ event }) => {
     }
   };
 
+  // Function to handle event deletion
+  const handleDelete = async (e) => {
+    e.stopPropagation(); // Prevent card click navigation
+    if (window.confirm('Are you sure you want to delete this event?')) {
+      try {
+        await api.delete(`/events/${event._id}`);
+        alert('Event deleted successfully');
+        window.location.reload(); // Refresh the page to reflect changes
+      } catch (error) {
+        alert('Error deleting event');
+      }
+    }
+  };
+
   return (
-    <div className="event-card">
+    <div className="event-card" onClick={() => setShowDetailsModal(true)}>
+      {event.imageUrl && <img src={event.imageUrl} alt={event.name} className="event-image" />}
       <div className="event-details">
         <h3>{event.name}</h3>
         <p>Prize: {event.prize}</p>
         <p>Entry Fee: ₹{event.entryFee}</p>
         <p>Type: {event.entryType}</p>
-        
-        <button onClick={() => setShowODForm(!showODForm)}>Request OD</button>
+
+        {(user.isAdmin || user.isLeader) && (
+          <button
+            className="delete-button"
+            onClick={handleDelete}
+          >
+            Delete
+          </button>
+        )}
+
+        <button onClick={(e) => {
+          e.stopPropagation(); // Prevent card click navigation
+          setShowODForm(!showODForm);
+        }}>
+          Request OD
+        </button>
 
         {showODForm && (
           <form onSubmit={handleRequestOD} className="od-form">
@@ -84,7 +119,7 @@ const EventCard = ({ event }) => {
                 type="date"
                 name="dateFrom"
                 value={odData.dateFrom}
-                onChange={(e) => setODData({...odData, dateFrom: e.target.value})}
+                onChange={(e) => setODData({ ...odData, dateFrom: e.target.value })}
                 required
               />
             </div>
@@ -95,7 +130,7 @@ const EventCard = ({ event }) => {
                 type="date"
                 name="dateTo"
                 value={odData.dateTo}
-                onChange={(e) => setODData({...odData, dateTo: e.target.value})}
+                onChange={(e) => setODData({ ...odData, dateTo: e.target.value })}
                 required
               />
             </div>
@@ -107,7 +142,7 @@ const EventCard = ({ event }) => {
               <textarea
                 name="reason"
                 value={odData.reason}
-                onChange={(e) => setODData({...odData, reason: e.target.value})}
+                onChange={(e) => setODData({ ...odData, reason: e.target.value })}
                 placeholder="Provide detailed reason for OD request"
                 required
                 minLength="10"
@@ -120,6 +155,21 @@ const EventCard = ({ event }) => {
               <button type="button" onClick={() => setShowODForm(false)}>Cancel</button>
             </div>
           </form>
+        )}
+
+        {/* Modal for event details */}
+        {showDetailsModal && (
+          <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
+            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+              <button className="close-button" onClick={() => setShowDetailsModal(false)}>×</button>
+              <h2>{event.name}</h2>
+              {event.imageUrl && <img src={event.imageUrl} alt={event.name} className="modal-event-image" />}
+              <p><strong>Prize:</strong> {event.prize}</p>
+              <p><strong>Entry Fee:</strong> ₹{event.entryFee}</p>
+              <p><strong>Type:</strong> {event.entryType}</p>
+              <p><strong>Details:</strong> {event.details}</p> {/* Full event details */}
+            </div>
+          </div>
         )}
       </div>
     </div>
