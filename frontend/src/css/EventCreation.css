@@ -1,0 +1,69 @@
+.event-creation-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.event-creation-container h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.event-creation-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.event-creation-container form > div {
+    margin-bottom: 15px;
+}
+
+.event-creation-container label {
+    display: block;
+    margin-bottom: 5px;
+    color: #555;
+    font-weight: 500;
+}
+
+.event-creation-container input,
+.event-creation-container select,
+.event-creation-container textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.event-creation-container textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.event-creation-container button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.event-creation-container button:hover {
+    background-color: #0056b3;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .event-creation-container {
+        width: 90%;
+        padding: 15px;
+    }
+}

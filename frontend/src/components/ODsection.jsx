@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import '../css/ODSection.css';
+
 const ODSection = () => {
   const [odRequests, setOdRequests] = useState([]);
 
@@ -15,6 +16,25 @@ const ODSection = () => {
     };
     fetchODRequests();
   }, []);
+
+  const getStatusIcon = (approvalStatus, overallStatus) => {
+    // If the overall status is rejected, show rejection icon
+    if (overallStatus === 'rejected') {
+      return '❌';
+    }
+  
+    // If the overall status is approved and approvalStatus is true, show approved icon
+    if (overallStatus === 'approved' && approvalStatus) {
+      return '✅';
+    }
+  
+    // For pending status
+    if (approvalStatus === true) {
+      return '✅';
+    }
+  
+    return '⌛';
+  };
 
   return (
     <div className="od-section">
@@ -39,15 +59,15 @@ const ODSection = () => {
                 <td>{new Date(od.dateFrom).toLocaleDateString()}</td>
                 <td>{new Date(od.dateTo).toLocaleDateString()}</td>
                 <td className={`status-${od.status}`}>{od.status}</td>
-                <td>{od.tutorApproval ? '✅' : '⏳'}</td>
-                <td>{od.acApproval ? '✅' : '⏳'}</td>
-                <td>{od.hodApproval ? '✅' : '⏳'}</td>
+                <td>{getStatusIcon(od.tutorApproval, od.status)}</td>
+                <td>{getStatusIcon(od.acApproval, od.status)}</td>
+                <td>{getStatusIcon(od.hodApproval, od.status)}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
     </div>
-  );
-};
+  );};
+
 export default ODSection;

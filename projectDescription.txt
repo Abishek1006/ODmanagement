@@ -137,14 +137,19 @@ server.js
   |-->EventSection.jsx
   |-->Login.css
   |-->Login.jsx
-  |-->Navbar.css
   |-->Navbar.jsx
   |-->ODsection.jsx
   |-->PersonalDetails.jsx
   |-->Register.jsx
+  |-->EventCreation.jsx
+  |-->EventDetails.jsx
+  |-->ExternalODSection.jsx
+  -->PersonalDetails.jsx
+  -->ODsection.jsx
 ---CSS
   |-->student.css
   |-->teacher.css
+
 ---pages
   |-->StudentDashboard.jsx
   |-->TeacherDashboard.jsx

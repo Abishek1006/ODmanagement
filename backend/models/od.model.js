@@ -14,6 +14,9 @@ const odSchema = new mongoose.Schema({
   acApproval: { type: Boolean, default: false },
   hodApproval: { type: Boolean, default: false },
   isImmediate: { type: Boolean, default: false },
+  isExternal: { type: Boolean, default: false },
+  location: { type: String },
+  eventType: { type: String },
   immediateApprover: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   immediateApprovalDate: { type: Date }
 }, { timestamps: true });

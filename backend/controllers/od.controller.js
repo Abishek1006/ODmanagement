@@ -222,3 +222,49 @@ exports.getStudentsWithOD = async (req, res) => {
     res.status(500).json({ message: 'Server error during getting students with OD' });
   }
 };
+
+exports.createExternalODRequest = async (req, res) => {
+  try {
+    console.log('Received request body:', req.body);
+    console.log('Current user:', req.user);
+
+    const { eventName, dateFrom, dateTo, reason, location, eventType } = req.body;
+    
+    // Validation checks
+    if (!eventName || !dateFrom || !dateTo || !reason || !location || !eventType) {
+      return res.status(400).json({
+        message: 'Missing required fields',
+        receivedData: req.body
+      });
+    }
+
+    const odRequest = await OD.create({
+      studentId: req.user._id,
+      eventName,
+      dateFrom,
+      dateTo,
+      reason,
+      location,
+      eventType,
+      status: 'pending',
+      tutorId: req.user.tutorId,
+      acId: req.user.acId,
+      hodId: req.user.hodId,
+      isExternal: true
+    });
+
+    console.log('Created OD request:', odRequest);
+
+    res.status(201).json({ 
+      message: 'External OD request created successfully', 
+      odRequest 
+    });
+  } catch (error) {
+    console.error('Detailed error:', error);
+    res.status(500).json({ 
+      message: 'Error creating external OD request', 
+      error: error.message,
+      stack: error.stack 
+    });
+  }
+};

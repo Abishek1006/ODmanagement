@@ -1,4 +1,3 @@
-// src/components/EventCard.jsx
 import "../css/EventCard.css";
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -81,7 +80,7 @@ const EventCard = ({ event }) => {
   };
 
   return (
-    <div className="event-card" onClick={() => setShowDetailsModal(true)}>
+    <div className="event-card">
       {event.imageUrl && <img src={event.imageUrl} alt={event.name} className="event-image" />}
       <div className="event-details">
         <h3>{event.name}</h3>
@@ -99,10 +98,20 @@ const EventCard = ({ event }) => {
         )}
 
         <button onClick={(e) => {
-          e.stopPropagation(); // Prevent card click navigation
+          e.stopPropagation();
           setShowODForm(!showODForm);
         }}>
           Request OD
+        </button>
+
+        <button
+          className="view-details-button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowDetailsModal(true);
+          }}
+        >
+          View More Details
         </button>
 
         {showODForm && (

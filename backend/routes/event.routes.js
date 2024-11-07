@@ -7,7 +7,8 @@ const {
     getEventById, 
     updateEvent, 
     deleteEvent, 
-    registerForEvent 
+    registerForEvent,
+    getMyCreatedEvents
 } = require('../controllers/event.controller');
 const { protect, restrictToLeaderOrAdmin } = require('../middleware/auth.middleware');
 const router = express.Router();
@@ -28,5 +29,7 @@ router.delete('/:id', protect, restrictToLeaderOrAdmin, deleteEvent);
 
 // Register for an event (open to students)
 router.post('/:id/register', protect, registerForEvent);
-
+router.get('/my-created-events', protect, getMyCreatedEvents);
 module.exports = router;
+
+

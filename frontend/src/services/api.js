@@ -15,20 +15,13 @@ const getUserDetails = () => {
   return details ? JSON.parse(details) : null;
 };
 
+
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    const { primaryRole, secondaryRoles, isLeader } = getUserRoles();
-    const userDetails = getUserDetails();
-
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
-
-    config.headers['X-Primary-Role'] = primaryRole;
-    config.headers['X-Secondary-Roles'] = JSON.stringify(secondaryRoles);
-    config.headers['X-Is-Leader'] = isLeader.toString();
-
     return config;
   },
   (error) => Promise.reject(error)
@@ -45,3 +38,16 @@ api.setUserDetails = (details) => {
 api.getUserRoles = getUserRoles;
 api.getUserDetails = getUserDetails;
 export default api;
+
+// Add this interceptor for detailed error logging
+api.interceptors.response.use(
+  response => response,
+  error => {
+    console.log('API Error:', {
+      config: error.config,
+      response: error.response,
+      message: error.message
+    });
+    return Promise.reject(error);
+  }
+);

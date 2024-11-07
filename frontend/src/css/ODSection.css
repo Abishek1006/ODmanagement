@@ -1,28 +1,74 @@
 .od-section {
-  background: white;
   padding: 20px;
-  border-radius: 12px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.od-section h2 {
+  color: #333;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.od-form {
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.od-table {
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+  color: #444;
+}
+
+.form-group input,
+.form-group textarea {
   width: 100%;
-  border-collapse: collapse;
-  margin-top: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
 }
 
-.od-table th,
-.od-table td {
-  padding: 12px;
-  border-bottom: 1px solid #eee;
-  text-align: left;
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
-.od-table th {
-  background-color: #f8f9fa;
-  font-weight: 600;
+.submit-button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 16px;
 }
 
-.status-pending { color: #f59e0b; }
-.status-approved { color: #10b981; }
-.status-rejected { color: #ef4444; }
+.submit-button:hover {
+  background-color: #45a049;
+}
+
+.success-message {
+  background-color: #dff0d8;
+  color: #3c763d;
+  padding: 15px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  text-align: center;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #4CAF50;
+  box-shadow: 0 0 5px rgba(76, 175, 80, 0.2);
+}
