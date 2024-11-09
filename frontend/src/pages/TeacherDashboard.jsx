@@ -1,131 +1,102 @@
-// src/pages/TeacherDashboard.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import '../css/teacher.css';
+import api from '../services/api';
+
+// Import components for each section
+import TeacherPersonalDetails from '../components/TeacherPersonalDetails';
+import ODApprovalSection from '../components/ODApprovalSection';
+import CourseManagement from '../components/CourseManagement';
+import MyEvents from '../components/MyEvents'; // Reuse existing events component
+
+import '../css/teacher.css'; // Create a separate CSS file for teacher dashboard
 
 const TeacherDashboard = () => {
-  const [activeSection, setActiveSection] = useState('events');
+  const [isLoading, setIsLoading] = useState(true);
+  const [userRoles, setUserRoles] = useState(api.getUserRoles());
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const renderContent = () => {
-    switch (activeSection) {
-      case 'events':
-        return <EventsContent />;
-      case 'details':
-        return <PersonalDetailsContent />;
-      case 'od':
-        return <ODSectionContent />;
-      case 'grades':
-        return <GradesContent />;
-      default:
-        return <EventsContent />;
-    }
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const response = await api.get('/user-details');
+        api.setUserRoles(
+          response.data.primaryRole,
+          response.data.secondaryRoles || [],
+          response.data.isLeader || false
+        );
+        setUserRoles(api.getUserRoles());
+        setIsLoading(false);
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserDetails();
+  }, []);
+
+  const handleSectionChange = (section) => {
+    navigate(section);
   };
 
+  if (isLoading) {
+    return <div className="loading">Loading...</div>;
+  }
+
   return (
-    <div className="dashboard">
+    <div className="dashboard teacher-dashboard">
       <Navbar />
       <div className="dashboard-content">
         <nav className="sidebar">
           <ul>
-            {['Events', 'Personal Details', 'OD Section', 'Grades'].map((item) => (
-              <li key={item}>
-                <button
-                  className={`sidebar-button ${
-                    activeSection === item.toLowerCase().replace(' ', '')
-                      ? 'active'
-                      : ''
-                  }`}
-                  onClick={() => setActiveSection(item.toLowerCase().replace(' ', ''))}
-                >
-                  {item}
-                </button>
-              </li>
-            ))}
+            <li>
+              <button 
+                className={location.pathname === '/teacher/personal-details' ? 'active' : ''} 
+                onClick={() => handleSectionChange('personal-details')}
+              >
+                Personal Details
+              </button>
+            </li>
+            <li>
+              <button 
+                className={location.pathname === '/teacher/od-approval' ? 'active' : ''} 
+                onClick={() => handleSectionChange('od-approval')}
+              >
+                OD Approval
+              </button>
+            </li>
+            <li>
+              <button
+                className={location.pathname === '/teacher/courses' ? 'active' : ''}
+                onClick={() => handleSectionChange('courses')}
+              >
+                Courses
+              </button>
+            </li>
+            <li>
+              <button
+                className={location.pathname === '/teacher/events' ? 'active' : ''}
+                onClick={() => handleSectionChange('events')}
+              >
+                My Events
+              </button>
+            </li>
           </ul>
         </nav>
         <main className="main-content">
-          <h2 className="section-title">
-            {activeSection.replace('od', 'OD').replace(/([A-Z])/g, ' $1').trim()}
-          </h2>
-          {renderContent()}
+          <Routes>
+            <Route path="/" element={<Navigate to="personal-details" replace />} />
+            <Route path="personal-details" element={<TeacherPersonalDetails />} />
+            <Route path="od-approval" element={<ODApprovalSection />} />
+            <Route path="courses" element={<CourseManagement />} />
+            <Route path="events" element={<MyEvents />} />
+          </Routes>
         </main>
       </div>
     </div>
   );
 };
-
-const EventsContent = () => (
-  <div className="content-card">
-    <h3>Upcoming Events</h3>
-    <ul className="event-list">
-      <li>
-        <span className="event-date">May 15, 2024</span>
-        <span>Faculty Development Program</span>
-      </li>
-      <li>
-        <span className="event-date">June 1, 2024</span>
-        <span>Annual Teachers' Conference</span>
-      </li>
-    </ul>
-  </div>
-);
-
-const PersonalDetailsContent = () => (
-  <div className="content-card">
-    <h3>Personal Information</h3>
-    <div className="info-grid">
-      <div>
-        <p className="info-label">Name</p>
-        <p className="info-value">Dr. Jane Smith</p>
-      </div>
-      <div>
-        <p className="info-label">Employee ID</p>
-        <p className="info-value">T12345</p>
-      </div>
-      <div>
-        <p className="info-label">Department</p>
-        <p className="info-value">Computer Science</p>
-      </div>
-      <div>
-        <p className="info-label">Join Date</p>
-        <p className="info-value">September 1, 2020</p>
-      </div>
-    </div>
-  </div>
-);
-
-const ODSectionContent = () => (
-  <div className="content-card">
-    <h3>On Duty Requests</h3>
-    <table className="od-table">
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Reason</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>May 20, 2024</td>
-          <td>Conference Attendance</td>
-          <td><span className="status approved">Approved</span></td>
-        </tr>
-        <tr>
-          <td>June 5, 2024</td>
-          <td>Workshop Participation</td>
-          <td><span className="status pending">Pending</span></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-);
-
-const GradesContent = () => (
-  <div className="content-card">
-    <h3>Grade Management</h3>
-    <p>Grade management functionality will be implemented here.</p>
-  </div>
-);
 
 export default TeacherDashboard;
