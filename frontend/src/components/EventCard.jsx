@@ -2,6 +2,8 @@ import "../css/EventCard.css";
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import { requestOD } from '../services/eventservice';
+
 
 const EventCard = ({ event }) => {
   const navigate = useNavigate();
@@ -44,27 +46,28 @@ const EventCard = ({ event }) => {
   const handleRequestOD = async (e) => {
     e.preventDefault();
     if (!validateDates()) return;
-
-    const userDetails = api.getUserDetails();
-    
+  
     try {
-      await api.post('/od', {
-        studentId: userDetails._id,
+      console.log('OD Form Data:', odData); // Debug log
+      const response = await requestOD({
         eventName: event.name,
         dateFrom: odData.dateFrom,
         dateTo: odData.dateTo,
         reason: odData.reason,
-        tutorId: userDetails.tutorId,
-        acId: userDetails.acId,
-        hodId: userDetails.hodId
+        isExternal: false,
+        location: event.location || '',
+        eventType: event.type || ''
       });
+      
+      console.log('Response:', response); // Debug log
       setShowODForm(false);
       alert('OD request submitted successfully');
     } catch (error) {
+      console.log('Submission Error:', error); // Debug log
       alert('Failed to submit OD request');
     }
   };
-
+  
   // Function to handle event deletion
   const handleDelete = async (e) => {
     e.stopPropagation(); // Prevent card click navigation

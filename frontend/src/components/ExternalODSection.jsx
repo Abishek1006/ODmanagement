@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../services/api';
 import '../css/ODSection.css';
+import { requestOD } from '../services/eventservice';
 
 const ExternalODSection = () => {
   const [formData, setFormData] = useState({
@@ -17,8 +18,10 @@ const ExternalODSection = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await api.post('/od/external', formData);
-      console.log('Response:', response.data);
+      await requestOD({
+        ...formData,
+        isExternal: true
+      });
       setSubmitted(true);
       setFormData({
         eventName: '',
@@ -29,11 +32,7 @@ const ExternalODSection = () => {
         eventType: ''
       });
     } catch (error) {
-      console.error('Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
-      });
+      console.error('Error:', error);
     }
   };
 
@@ -132,3 +131,4 @@ const ExternalODSection = () => {
 };
 
 export default ExternalODSection;
+

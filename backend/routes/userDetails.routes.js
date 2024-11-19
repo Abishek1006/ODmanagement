@@ -1,6 +1,7 @@
 const express = require('express');
 const { 
   getUserDetails, 
+  updateUserDetails,
   addCourse,
   deleteCourse,
   updateMentors,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 // Core routes
 router.get('/', protect, getUserDetails);
+router.put('/', protect, updateUserDetails);
 router.post('/courses', protect, addCourse);
 router.delete('/courses/:courseId', protect, deleteCourse);
 router.put('/mentors', protect, updateMentors);

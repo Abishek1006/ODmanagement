@@ -36,48 +36,68 @@ exports.getCourses = async (req, res) => {
 exports.getTeacherCourses = async (req, res) => {
   try {
     const teacherId = req.user._id;
-    const courses = await Course.find({ teachers: teacherId });
+    console.log('Teacher ID:', teacherId);
+    
+    const courses = await Course.find({ teachers: teacherId })
+                              .select('courseId courseName department');
+    
+    console.log('Found courses:', courses);
     res.json(courses);
   } catch (error) {
-    console.error('Error fetching teacher courses:', error);
-    res.status(500).json({ message: 'Error fetching teacher courses' });
+    console.error('Error in getTeacherCourses:', error);
+    res.status(500).json({ 
+      message: 'Error fetching teacher courses',
+      error: error.message 
+    });
   }
 };
+
 
 // controllers/course.controller.js
 exports.getStudentsWithOD = async (req, res) => {
   try {
-    const courseId = req.params.courseId;
+    const { courseId } = req.params;
+    
+    // First get the course details
     const course = await Course.findById(courseId);
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
     }
 
-    const studentsWithOD = await User.find({
-      courses: { $elemMatch: { courseId: course._id } },
-    })
-      .then(students => {
-        const studentIds = students.map(student => student._id);
-        return OD.find({
-          studentId: { $in: studentIds },
-          status: 'approved'
-        })
-          .then(odRequests => {
-            const result = students.map(student => {
-              const studentODRequests = odRequests.filter(odRequest => odRequest.studentId.toString() === student._id.toString());
-              return { ...student.toObject(), odRequests: studentODRequests };
-            });
-            return result;
-          });
+    // Find all students enrolled in this course
+    const students = await User.find({
+      'courses.courseId': courseId,
+      primaryRole: 'student'
+    });
+
+    // Get OD details for each student
+    const studentsWithODDetails = await Promise.all(students.map(async (student) => {
+      const odRequests = await OD.find({
+        studentId: student._id,
+        dateFrom: { $lte: new Date() },
+        dateTo: { $gte: new Date() }
       });
 
-    res.json(studentsWithOD);
+      return {
+        _id: student._id,
+        name: student.name,
+        rollNo: student.rollNo,
+        department: student.department,
+        odRequests: odRequests
+      };
+    }));
+
+    res.json({
+      courseName: course.courseName,
+      courseId: course.courseId,
+      students: studentsWithODDetails
+    });
+
   } catch (error) {
     console.error('Error fetching students with OD:', error);
-    res.status(500).json({ message: 'Error fetching students with OD' });
+    res.status(500).json({ message: 'Error fetching students data' });
   }
 };
-
 exports.getCourseById = async (req, res) => {
   try {
     const course = await Course.findOne({ courseId: req.params.courseId });
@@ -88,5 +108,18 @@ exports.getCourseById = async (req, res) => {
   } catch (error) {
     console.error('Error fetching course:', error);
     res.status(500).json({ message: 'Error fetching course', error: error.message });
+  }
+};
+
+const fetchCourses = async () => {
+  try {
+    const response = await api.get('/teacher-courses');  // Corrected route
+    console.log('Courses Response:', response.data);  // Add logging
+    setCourses(response.data);
+    setLoading(false);
+  } catch (error) {
+    console.error('Full Error:', error);  // Detailed error logging
+    setError(error.response?.data?.message || 'Failed to load courses');
+    setLoading(false);
   }
 };

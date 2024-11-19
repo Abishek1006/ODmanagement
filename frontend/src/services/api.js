@@ -2,9 +2,19 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'http://localhost:5000/api', // Verify this matches your backend
 });
 
+// Add this debug logging
+api.interceptors.request.use(config => {
+  console.log('Request Config:', {
+    url: config.url,
+    method: config.method,
+    headers: config.headers,
+    data: config.data
+  });
+  return config;
+});
 const getUserRoles = () => {
   const userRoles = localStorage.getItem('userRoles');
   return userRoles ? JSON.parse(userRoles) : { primaryRole: '', secondaryRoles: [], isLeader: false };
@@ -32,8 +42,16 @@ api.setUserRoles = (primaryRole, secondaryRoles, isLeader) => {
 };
 
 api.setUserDetails = (details) => {
-  localStorage.setItem('userDetails', JSON.stringify(details));
+  const userDetails = {
+    ...details,
+    tutorId: details.tutorId,
+    acId: details.acId,
+    hodId: details.hodId,
+    _id: details._id
+  };
+  localStorage.setItem('userDetails', JSON.stringify(userDetails));
 };
+
 
 api.getUserRoles = getUserRoles;
 api.getUserDetails = getUserDetails;
@@ -43,9 +61,9 @@ export default api;
 api.interceptors.response.use(
   response => response,
   error => {
-    console.log('API Error:', {
+    console.error('API Error:', {
       config: error.config,
-      response: error.response,
+      response: error.response?.data,
       message: error.message
     });
     return Promise.reject(error);

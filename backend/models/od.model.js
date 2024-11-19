@@ -18,7 +18,11 @@ const odSchema = new mongoose.Schema({
   location: { type: String },
   eventType: { type: String },
   immediateApprover: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  immediateApprovalDate: { type: Date }
+  immediateApprovalDate: { type: Date },
+  studentDetails: {
+    name: { type: String },
+    rollNo: { type: String },
+    department: { type: String }
+  }
 }, { timestamps: true });
-
 module.exports = mongoose.model('OD', odSchema);

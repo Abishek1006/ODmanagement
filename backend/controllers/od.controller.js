@@ -1,24 +1,31 @@
 // controllers/event.controller.js
 const OD = require('../models/od.model');
 const User = require('../models/user.model');
-const { createNotification } = require('./notification.controller');
+
 const Course = require('../models/course.model');
 // Create an OD request
 exports.createODRequest = async (req, res) => {
   try {
-    const { studentId, eventName, dateFrom, dateTo, reason } = req.body;
+    const { studentId, eventName, dateFrom, dateTo, reason, tutorId, acId, hodId, isExternal, location, eventType } = req.body;
 
-    // Create a new OD request
+    // Ensure we have all required mentor IDs
+    if (!tutorId || !acId || !hodId) {
+      return res.status(400).json({ message: 'Missing mentor details' });
+    }
+
     const odRequest = await OD.create({
       studentId,
       eventName,
       dateFrom,
       dateTo,
       reason,
-      status: 'pending', // Default status
-      tutorId: req.user.tutorId, // Automatically set tutor ID from user context
-      acId: req.user.acId, // Similarly for AC
-      hodId: req.user.hodId // Similarly for HOD
+      tutorId,
+      acId,
+      hodId,
+      status: 'pending',
+      isExternal: isExternal || false,
+      location,
+      eventType
     });
 
     res.status(201).json({ message: 'OD request created successfully', odRequest });
@@ -27,6 +34,7 @@ exports.createODRequest = async (req, res) => {
     res.status(400).json({ message: 'Error creating OD request', error });
   }
 };
+
 
 // Approve OD request
 exports.approveODRequest = async (req, res) => {
@@ -191,80 +199,143 @@ exports.approveImmediateOD = async (req, res) => {
 };
 exports.getStudentsWithOD = async (req, res) => {
   try {
-    const teacherId = req.user._id;
-    const courses = await Course.find({ teachers: teacherId });
-    const studentsWithOD = [];
+    const { courseId } = req.query;
+    console.log('Fetching students for course:', courseId);
 
-    for (const course of courses) {
-      const students = await User.find({ courses: course._id });
-      for (const student of students) {
-        const odRequests = await OD.find({
-          studentId: student._id,
-          status: 'approved',
-          dateFrom: { $lte: new Date() },
-          dateTo: { $gte: new Date() },
-        });
-        if (odRequests.length > 0) {
-          studentsWithOD.push({
-            studentName: student.name,
-            studentRollNo: student.rollNo,
-            eventName: odRequests[0].eventName,
-            dateFrom: odRequests[0].dateFrom,
-            dateTo: odRequests[0].dateTo,
-          });
-        }
-      }
+    // Get course details
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
     }
 
-    res.status(200).json(studentsWithOD);
+    // Find students enrolled in this course
+    const students = await User.find({
+      'courses.courseId': courseId,
+      primaryRole: 'student'
+    });
+
+    console.log('Found students:', students);
+
+    // Get OD details for each student
+    const studentsWithODDetails = await Promise.all(students.map(async (student) => {
+      const odRequests = await OD.find({
+        studentId: student._id,
+        status: 'approved',
+        dateFrom: { $lte: new Date() },
+        dateTo: { $gte: new Date() }
+      });
+
+      console.log(`OD requests for student ${student.name}:`, odRequests);
+
+      return {
+        _id: student._id,
+        name: student.name,
+        rollNo: student.rollNo,
+        department: student.department,
+        odRequests: odRequests
+      };
+    }));
+
+    const response = {
+      courseName: course.courseName,
+      courseId: course.courseId,
+      students: studentsWithODDetails
+    };
+
+    console.log('Sending response:', response);
+    res.json(response);
+
   } catch (error) {
-    console.error('Error getting students with OD:', error);
-    res.status(500).json({ message: 'Server error during getting students with OD' });
+    console.error('Detailed error in getStudentsWithOD:', error);
+    res.status(500).json({ 
+      message: 'Error fetching students data',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
+  }
+};
+exports.createExternalODRequest = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate('tutorId acId hodId');
+    const odRequest = await OD.create({
+      studentId: req.user._id,
+      ...req.body,
+      tutorId: user.tutorId,
+      acId: user.acId,
+      hodId: user.hodId,
+      status: 'pending',
+      isExternal: true
+    });
+    res.status(201).json({ message: 'External OD request created successfully', odRequest });
+  } catch (error) {
+    console.error('Error:', error);
+    res.status(500).json({ message: 'Error creating external OD request', error: error.message });
+  }
+};
+exports.getTeacherODRequests = async (req, res) => {
+  try {
+    const teacherId = req.user._id;
+    
+    const odRequests = await OD.find({
+      $or: [
+        { tutorId: teacherId, status: 'pending' },
+        { acId: teacherId, status: 'pending' },
+        { hodId: teacherId, status: 'pending' }
+      ]
+    })
+    .populate('studentId', 'name rollNo department');
+
+    res.status(200).json(odRequests);
+  } catch (error) {
+    console.error('Error fetching teacher OD requests:', error);
+    res.status(500).json({ message: 'Server error during OD request retrieval' });
   }
 };
 
-exports.createExternalODRequest = async (req, res) => {
+exports.teacherODApproval = async (req, res) => {
   try {
-    console.log('Received request body:', req.body);
-    console.log('Current user:', req.user);
+    const { odId } = req.params;
+    const { status } = req.body;
+    const teacherId = req.user._id;
 
-    const { eventName, dateFrom, dateTo, reason, location, eventType } = req.body;
-    
-    // Validation checks
-    if (!eventName || !dateFrom || !dateTo || !reason || !location || !eventType) {
-      return res.status(400).json({
-        message: 'Missing required fields',
-        receivedData: req.body
-      });
+    const odRequest = await OD.findById(odId);
+
+    if (!odRequest) {
+      return res.status(404).json({ message: 'OD request not found' });
     }
 
-    const odRequest = await OD.create({
-      studentId: req.user._id,
-      eventName,
-      dateFrom,
-      dateTo,
-      reason,
-      location,
-      eventType,
-      status: 'pending',
-      tutorId: req.user.tutorId,
-      acId: req.user.acId,
-      hodId: req.user.hodId,
-      isExternal: true
-    });
+    // Determine approval based on teacher's role
+    if (odRequest.tutorId.toString() === teacherId.toString()) {
+      odRequest.tutorApproval = status === 'approved';
+    } else if (odRequest.acId.toString() === teacherId.toString()) {
+      odRequest.acApproval = status === 'approved';
+    } else if (odRequest.hodId.toString() === teacherId.toString()) {
+      odRequest.hodApproval = status === 'approved';
+    } else {
+      return res.status(403).json({ message: 'Unauthorized to approve this request' });
+    }
 
-    console.log('Created OD request:', odRequest);
+    // Update overall status if all approvals are complete
+    if (odRequest.tutorApproval && odRequest.acApproval && odRequest.hodApproval) {
+      odRequest.status = 'approved';
+    } else if (status === 'rejected') {
+      odRequest.status = 'rejected';
+    }
 
-    res.status(201).json({ 
-      message: 'External OD request created successfully', 
-      odRequest 
-    });
+    await odRequest.save();
+
+    // Create notification for student
+    await createNotification(
+      odRequest.studentId,
+      `Your OD request for ${odRequest.eventName} has been ${status}`,
+      'OD_STATUS',
+      odRequest._id,
+      'OD'
+    );
+
+    res.status(200).json(odRequest);
   } catch (error) {
-    console.error('Detailed error:', error);
-    res.status(500).json({ 
-      message: 'Error creating external OD request', 
-      error: error.message,
-      stack: error.stack 
-    });
+    console.error('Error in OD approval:', error);
+    res.status(500).json({ message: 'Server error during OD approval' });
   }
 };

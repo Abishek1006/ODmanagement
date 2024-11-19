@@ -2,8 +2,20 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
+  name: { 
+    type: String, 
+    required: true,
+    trim: true,
+    minlength: [2, 'Name must be at least 2 characters long']
+  },
+  email: { 
+    type: String, 
+    required: true, 
+    unique: true,
+    lowercase: true,
+    trim: true,
+    match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please fill a valid email address']
+  },
   password: { type: String, required: true },
   primaryRole: { 
     type: String, 
@@ -27,5 +39,4 @@ const userSchema = new mongoose.Schema({
   }],
   isAdmin: { type: Boolean, default: false }
 });
-
 module.exports = mongoose.model('User', userSchema);

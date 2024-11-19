@@ -69,3 +69,33 @@ exports.getAllTeachers = asyncHandler(async (req, res) => {
   const teachers = await User.find({ primaryRole: 'teacher' }, 'name _id');
   res.json(teachers);
 });
+
+exports.updateUserDetails = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+  const updateData = req.body;
+
+  // Prevent updating certain fields
+  const fieldsToUpdate = {
+    name: updateData.name,
+    email: updateData.email,
+    department: updateData.department,
+    staffId: updateData.staffId
+  };
+
+  const user = await User.findByIdAndUpdate(
+    userId, 
+    { $set: fieldsToUpdate }, 
+    { new: true, runValidators: true }
+  )
+  .populate('courses.courseId')
+  .populate('tutorId')
+  .populate('acId')
+  .populate('hodId');
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  res.json(user);
+});

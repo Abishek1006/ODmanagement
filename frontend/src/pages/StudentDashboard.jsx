@@ -23,6 +23,7 @@ const StudentDashboard = () => {
     const fetchUserDetails = async () => {
       try {
         const response = await api.get('/user-details');
+        api.setUserDetails(response.data); // Set user details first
         api.setUserRoles(
           response.data.primaryRole,
           response.data.secondaryRoles || [],

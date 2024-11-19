@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
+import CourseDetailsView from '../components/CourseDetailsView';
 
 // Import components for each section
 import TeacherPersonalDetails from '../components/TeacherPersonalDetails';
@@ -86,13 +87,14 @@ const TeacherDashboard = () => {
           </ul>
         </nav>
         <main className="main-content">
-          <Routes>
-            <Route path="/" element={<Navigate to="personal-details" replace />} />
-            <Route path="personal-details" element={<TeacherPersonalDetails />} />
-            <Route path="od-approval" element={<ODApprovalSection />} />
-            <Route path="courses" element={<CourseManagement />} />
-            <Route path="events" element={<MyEvents />} />
-          </Routes>
+            <Routes>
+              <Route path="/" element={<Navigate to="personal-details" replace />} />
+              <Route path="personal-details" element={<TeacherPersonalDetails />} />
+              <Route path="od-approval" element={<ODApprovalSection />} />
+              <Route path="courses" element={<CourseManagement />} />
+              <Route path="courses/:courseId" element={<CourseDetailsView />} /> {/* This will now match */}
+              <Route path="events" element={<MyEvents />} />
+            </Routes>
         </main>
       </div>
     </div>

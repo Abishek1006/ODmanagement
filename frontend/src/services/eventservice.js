@@ -10,20 +10,24 @@ export const getEvents = async () => {
     throw error;
   }
 };
-
-export const registerForEvent = async (eventId) => {
+export const requestOD = async (odData) => {
   try {
-    const response = await api.post(`/events/${eventId}/register`);
-    return response.data;
-  } catch (error) {
-    console.error('Error registering for event:', error);
-    throw error;
-  }
-};
+    const userDetails = api.getUserDetails();
+    
+    if (!userDetails || !userDetails._id || !userDetails.tutorId || !userDetails.acId || !userDetails.hodId) {
+      throw new Error('User details not complete. Please log in again.');
+    }
 
-export const requestOD = async (eventId) => {
-  try {
-    const response = await api.post('/od', { eventId });
+    const requestData = {
+      ...odData,
+      studentId: userDetails._id,
+      tutorId: userDetails.tutorId,
+      acId: userDetails.acId,
+      hodId: userDetails.hodId
+    };
+    
+    const endpoint = odData.isExternal ? '/od/external' : '/od';
+    const response = await api.post(endpoint, requestData);
     return response.data;
   } catch (error) {
     console.error('Error requesting OD:', error);
