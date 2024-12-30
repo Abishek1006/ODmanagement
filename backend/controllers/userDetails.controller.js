@@ -2,40 +2,131 @@
 const asyncHandler = require('express-async-handler');
 const User = require('../models/user.model');
 const Course = require('../models/course.model');
-
+const CourseEnrollment = require('../models/courseEnrollment.model');
+const { protect, restrictToRole } = require('../middleware/auth.middleware');
 exports.getUserDetails = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
-    .populate('courses.courseId')
-    .populate('courses.teacherId')
-    .populate('tutorId')
-    .populate('acId')
-    .populate('hodId');
+    .populate({
+      path: 'courses.courseId',
+      select: 'courseName courseId department'
+    })
+    .populate({
+      path: 'courses.teacherId',
+      select: 'name email'
+    });
+
+  if (!user) {
+    res.status(404);
+    throw new Error('User not found');
+  }
+
+  // Add role-specific data for teachers
+  if (user.primaryRole === 'teacher') {
+    const teacherCourses = await Course.find({ teachers: user._id });
+    user.teachingCourses = teacherCourses;
+  }
+
   res.json(user);
 });
 
+
 exports.addCourse = asyncHandler(async (req, res) => {
-  const { courseId, teacherId } = req.body;
-  const user = await User.findById(req.user._id);
+  const { courseId, teacherId, semester, academicYear } = req.body;
   
-  user.courses.push({ courseId, teacherId });
-  const updatedUser = await user.save();
-  
-  const populatedUser = await User.findById(updatedUser._id)
-    .populate('courses.courseId')
-    .populate('courses.teacherId');
-    
-  res.json(populatedUser);
+  // Verify course exists
+  const course = await Course.findById(courseId);
+  if (!course) {
+    res.status(404);
+    throw new Error('Course not found');
+  }
+
+  // Verify teacher exists and teaches this course
+  const teacher = await User.findById(teacherId);
+  if (!teacher || !course.teachers.includes(teacherId)) {
+    res.status(400);
+    throw new Error('Invalid teacher for this course');
+  }
+
+  // Create enrollment
+  const enrollment = await CourseEnrollment.create({
+    courseId,
+    studentId: req.user._id,
+    teacherId,
+    semester,
+    academicYear
+  });
+
+  const populatedEnrollment = await CourseEnrollment.findById(enrollment._id)
+    .populate('courseId')
+    .populate('teacherId', 'name email');
+
+  res.status(201).json(populatedEnrollment);
 });
+
+exports.getEnrolledCourses = asyncHandler(async (req, res) => {
+  console.log('Fetching enrolled courses for user:', req.user._id);
+  const enrollments = await CourseEnrollment.find({ 
+    studentId: req.user._id
+  })
+  .populate('courseId')
+  .populate('teacherId', 'name email');
+
+  console.log('Found enrollments:', enrollments);
+  res.json(enrollments);
+});
+
 
 exports.deleteCourse = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
-  const user = await User.findById(req.user._id);
   
-  user.courses = user.courses.filter(course => course.courseId.toString() !== courseId);
-  await user.save();
-  
+  // Delete the enrollment directly
+  const result = await CourseEnrollment.findOneAndDelete({
+    courseId,
+    studentId: req.user._id
+  });
+
+  if (!result) {
+    res.status(404);
+    throw new Error('Course enrollment not found');
+  }
+
   res.json({ message: 'Course deleted successfully' });
 });
+
+exports.addCourse = asyncHandler(async (req, res) => {
+  const { courseId, teacherId, semester, academicYear } = req.body;
+  
+  // Verify course exists
+  const course = await Course.findById(courseId);
+  if (!course) {
+    res.status(404);
+    throw new Error('Course not found');
+  }
+
+  // Verify teacher exists and teaches this course
+  const teacher = await User.findById(teacherId);
+  if (!teacher || !course.teachers.includes(teacherId)) {
+    res.status(400);
+    throw new Error('Invalid teacher for this course');
+  }
+
+  // Create enrollment
+  const enrollment = await CourseEnrollment.create({
+    courseId,
+    studentId: req.user._id,
+    teacherId,
+    semester,
+    academicYear
+  });
+
+  const populatedEnrollment = await CourseEnrollment.findById(enrollment._id)
+    .populate('courseId')
+    .populate('teacherId', 'name email');
+
+  res.status(201).json(populatedEnrollment);
+});
+
+
 
 exports.updateMentors = asyncHandler(async (req, res) => {
   const { tutorId, acId, hodId } = req.body;

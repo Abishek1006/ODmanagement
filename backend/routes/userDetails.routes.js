@@ -1,4 +1,6 @@
 const express = require('express');
+const { protect, restrictToRole } = require('../middleware/auth.middleware');
+
 const { 
   getUserDetails, 
   updateUserDetails,
@@ -6,21 +8,19 @@ const {
   deleteCourse,
   updateMentors,
   getCourseTeachers,
-  getAllTeachers
+  getAllTeachers,
+  getEnrolledCourses
 } = require('../controllers/userDetails.controller');
-const { protect } = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
-// Core routes
 router.get('/', protect, getUserDetails);
 router.put('/', protect, updateUserDetails);
-router.post('/courses', protect, addCourse);
+router.post('/courses/enroll', protect, addCourse);
+router.get('/courses/enrolled', protect, getEnrolledCourses);
 router.delete('/courses/:courseId', protect, deleteCourse);
-router.put('/mentors', protect, updateMentors);
-
-// Teacher-related routes
 router.get('/course-teachers/:courseId', protect, getCourseTeachers);
 router.get('/all-teachers', protect, getAllTeachers);
+
 
 module.exports = router;

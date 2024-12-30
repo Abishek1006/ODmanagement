@@ -13,6 +13,7 @@ const notificationRoutes = require('./routes/notification.routes');
 const userDetailsRoutes = require('./routes/userDetails.routes');
 const courseRoutes = require('./routes/course.routes'); // Add this line
 
+
 dotenv.config();
 
 // Connect to MongoDB
@@ -32,6 +33,7 @@ app.use('/api/od', odRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/user-details', userDetailsRoutes);
 app.use('/api/courses', courseRoutes); // Add this line
+
 
 // Error Handling Middlewares
 app.use(notFound);

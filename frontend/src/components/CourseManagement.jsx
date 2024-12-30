@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
-// import '../css/CourseManagement.css';
 
 const CourseManagement = () => {
   const [courses, setCourses] = useState([]);
@@ -9,17 +8,22 @@ const CourseManagement = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchCourses = async () => {
-      const response = await api.get('/courses/teacher-courses');
-      setCourses(response.data);
-      setLoading(false);
+    const fetchTeacherCourses = async () => {
+      try {
+        const response = await api.get('/courses/teacher-courses');
+        setCourses(response.data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching courses:', error);
+        setLoading(false);
+      }
     };
 
-    fetchCourses();
+    fetchTeacherCourses();
   }, []);
 
   const handleCourseClick = (courseId) => {
-    navigate(`/teacher/courses/${courseId}`);  // Updated path
+    navigate(`/teacher/courses/${courseId}/details`);
   };
 
   if (loading) return <div>Loading courses...</div>;
@@ -27,21 +31,24 @@ const CourseManagement = () => {
   return (
     <div className="course-management">
       <h2>My Courses</h2>
-      <div className="courses-grid">
-        {courses.map(course => (
-          <div 
-            key={course._id} 
-            className="course-card"
-            onClick={() => handleCourseClick(course._id)}
-          >
-            <h3>{course.courseName}</h3>
-            <p>Course ID: {course.courseId}</p>
-            <p>Department: {course.department}</p>
-          </div>
-        ))}
+      <div className="courses-list">
+        {courses.length > 0 ? (
+          courses.map(course => (
+            <div 
+              key={course._id} 
+              className="course-item"
+              onClick={() => handleCourseClick(course._id)}
+            >
+              <h3>{course.courseName}</h3>
+              {course.courseId && <p>Course Code: {course.courseId}</p>}
+              {course.department && <p>Department: {course.department}</p>}
+            </div>
+          ))
+        ) : (
+          <p>No courses assigned</p>
+        )}
       </div>
     </div>
   );
 };
-
 export default CourseManagement;

@@ -8,25 +8,27 @@ const TeacherPersonalDetails = () => {
     email: '',
     department: '',
     staffId: '',
-    courses: [],
-    primaryRole: 'teacher'
+    courses: []
   });
-  const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [availableTeachers, setAvailableTeachers] = useState([]);
 
   useEffect(() => {
     const fetchTeacherDetails = async () => {
       try {
-        // Fetch teacher's personal details
+        console.log('Fetching teacher details...');
         const userDetailsResponse = await api.get('/user-details');
-        setTeacherDetails(userDetailsResponse.data);
+        console.log('Teacher details response:', userDetailsResponse.data);
         
-        // Fetch all available teachers for potential course assignments
-        const teachersResponse = await api.get('/user-details/all-teachers');
-        setAvailableTeachers(teachersResponse.data);
-        
+        if (userDetailsResponse.data) {
+          setTeacherDetails({
+            name: userDetailsResponse.data.name || '',
+            email: userDetailsResponse.data.email || '',
+            department: userDetailsResponse.data.department || '',
+            staffId: userDetailsResponse.data.staffId || '',
+            courses: userDetailsResponse.data.courses || []
+          });
+        }
         setLoading(false);
       } catch (error) {
         console.error('Error fetching teacher details:', error);
@@ -38,128 +40,47 @@ const TeacherPersonalDetails = () => {
     fetchTeacherDetails();
   }, []);
 
-  const handleUpdateDetails = async () => {
-    try {
-      // Change from PUT to POST or modify backend route
-      const response = await api.put('/user-details', teacherDetails);
-      setTeacherDetails(response.data);
-      setIsEditing(false);
-    } catch (error) {
-      console.error('Update error:', error);
-      setError('Failed to update details: ' + error.response?.data?.message);
-    }
-  };
-
-  const handleAddCourse = async (courseId, teacherId) => {
-    try {
-      const response = await api.post('/user-details/courses', { 
-        courseId, 
-        teacherId 
-      });
-      setTeacherDetails(response.data);
-    } catch (error) {
-      console.error('Add course error:', error);
-      setError('Failed to add course');
-    }
-  };
-
-  const handleDeleteCourse = async (courseId) => {
-    try {
-      await api.delete(`/user-details/courses/${courseId}`);
-      // Refresh teacher details after deletion
-      const updatedDetails = await api.get('/user-details');
-      setTeacherDetails(updatedDetails.data);
-    } catch (error) {
-      console.error('Delete course error:', error);
-      setError('Failed to delete course');
-    }
-  };
-
   if (loading) return <div>Loading teacher details...</div>;
   if (error) return <div className="error">{error}</div>;
 
   return (
     <div className="teacher-personal-details">
       <h2>Teacher Profile</h2>
-      
       <div className="details-section">
         <div className="detail-row">
           <label>Name:</label>
-          {isEditing ? (
-            <input 
-              type="text" 
-              value={teacherDetails.name} 
-              onChange={(e) => setTeacherDetails({...teacherDetails, name: e.target.value})}
-            />
-          ) : (
-            <span>{teacherDetails.name}</span>
-          )}
+          <span>{teacherDetails.name}</span>
         </div>
 
         <div className="detail-row">
           <label>Email:</label>
-          {isEditing ? (
-            <input 
-              type="email" 
-              value={teacherDetails.email} 
-              onChange={(e) => setTeacherDetails({...teacherDetails, email: e.target.value})}
-            />
-          ) : (
-            <span>{teacherDetails.email}</span>
-          )}
+          <span>{teacherDetails.email}</span>
         </div>
 
         <div className="detail-row">
           <label>Staff ID:</label>
-          {isEditing ? (
-            <input 
-              type="text" 
-              value={teacherDetails.staffId} 
-              onChange={(e) => setTeacherDetails({...teacherDetails, staffId: e.target.value})}
-            />
-          ) : (
-            <span>{teacherDetails.staffId}</span>
-          )}
+          <span>{teacherDetails.staffId}</span>
         </div>
 
         <div className="detail-row">
           <label>Department:</label>
-          {isEditing ? (
-            <input 
-              type="text" 
-              value={teacherDetails.department} 
-              onChange={(e) => setTeacherDetails({...teacherDetails, department: e.target.value})}
-            />
-          ) : (
-            <span>{teacherDetails.department}</span>
-          )}
+          <span>{teacherDetails.department}</span>
         </div>
-
-        <div className="courses-section">
-          <h3>Courses</h3>
-          {teacherDetails.courses && teacherDetails.courses.map((course, index) => (
-            <div key={index} className="course-item">
-              <span>{course.courseId.name}</span>
-              {isEditing && (
-                <button onClick={() => handleDeleteCourse(course.courseId._id)}>
-                  Remove
-                </button>
-              )}
-            </div>
-          ))}
+          <div className="courses-section">
+            <h3>Teaching Courses</h3>
+            {teacherDetails.courses && teacherDetails.courses.length > 0 ? (
+              <ul>
+                {teacherDetails.courses.map((course, index) => (
+                  <li key={index}>
+                    {course.courseId ? course.courseId.courseName : 'Course Name Not Available'}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p>No courses assigned</p>
+            )}
+          </div>
         </div>
-
-        <div className="actions">
-          {isEditing ? (
-            <>
-              <button onClick={handleUpdateDetails}>Save Changes</button>
-              <button onClick={() => setIsEditing(false)}>Cancel</button>
-            </>
-          ) : (
-            <button onClick={() => setIsEditing(true)}>Edit Profile</button>
-          )}
-        </div>
-      </div>
     </div>
   );
 };

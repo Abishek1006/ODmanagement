@@ -114,6 +114,7 @@ E-ODSYSTEM
  |-->error.middleware.js
 --models
  |-->course.model.js
+ |-->courseEnrollment.model.js
  |-->event.model.js
  |-->notification.model.js
  |-->od.model.js
@@ -125,27 +126,30 @@ E-ODSYSTEM
  |-->event.routes.js
  |-->notification.routes.js
  |-->od.routes.js
- |-->teacher.routes.js
- |-->user.routes.js
  |-->userDetails.routes.js
 server.js
 -frontend 
 --Src
 ---asserts
 ---components
+  |-->CourseDetails.jsx
+  |-->coursemanagement.jsx
   |-->EventCard.jsx
   |-->EventSection.jsx
-  |-->Login.css
-  |-->Login.jsx
-  |-->Navbar.jsx
-  |-->ODsection.jsx
-  |-->PersonalDetails.jsx
-  |-->Register.jsx
   |-->EventCreation.jsx
   |-->EventDetails.jsx
   |-->ExternalODSection.jsx
-  -->PersonalDetails.jsx
-  -->ODsection.jsx
+  |-->Login.css
+  |-->Login.jsx
+  |-->MyEvents.jsx
+  |-->Navbar.jsx
+  |-->ODApprovalSection.jsx
+  |-->ODsection.jsx
+  |-->PersonalDetails.jsx
+  |-->Register.jsx
+  |-->PersonalDetails.jsx
+  |-->TeacherPersonalDetails.jsx
+
 ---CSS
   |-->student.css
   |-->teacher.css

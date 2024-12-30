@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import api from '../services/api.js';
 import '../css/PersonalDetails.css';
 
 const PersonalDetails = () => {
@@ -15,11 +15,24 @@ const PersonalDetails = () => {
   const [tutorId, setTutorId] = useState('');
   const [acId, setAcId] = useState('');
   const [hodId, setHodId] = useState('');
+  const [enrolledCourses, setEnrolledCourses] = useState([]);
+  const [currentSemester, setCurrentSemester] = useState('');
+  const [currentAcademicYear, setCurrentAcademicYear] = useState('');
 
   useEffect(() => {
     fetchUserDetails();
     fetchAllTeachers();
+    fetchEnrolledCourses();
   }, []);
+  const fetchAllTeachers = async () => {
+    try {
+      const response = await api.get('/user-details/all-teachers');
+      setAllTeachers(response.data);
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+      setError('Failed to load teachers');
+    }
+  };
 
   const fetchUserDetails = async () => {
     try {
@@ -35,62 +48,65 @@ const PersonalDetails = () => {
     }
   };
 
-  const fetchAllTeachers = async () => {
+  const fetchEnrolledCourses = async () => {
     try {
-      const response = await api.get('/user-details/all-teachers');
-      setAllTeachers(response.data);
+      const response = await api.getEnrolledCourses();
+      console.log('Enrolled courses:', response.data); // Debug log
+      setEnrolledCourses(response.data);
     } catch (error) {
-      setError('Failed to load teachers');
+      console.error('Error fetching enrolled courses:', error);
+      setError('Failed to load enrolled courses');
     }
   };
 
-  const handleCourseSearch = async () => {
-    try {
-      const response = await api.get(`/courses/search/${courseInput}`);
-      setSelectedCourse(response.data);
-      const teachersResponse = await api.get(`/user-details/course-teachers/${response.data._id}`);
-      setAvailableTeachers(teachersResponse.data);
-    } catch (error) {
-      setError('Course not found');
-    }
-  };
 
-  const handleAddCourse = async () => {
-    try {
-      await api.post('/user-details/courses', {
-        courseId: selectedCourse._id,
-        teacherId: selectedTeacher
-      });
-      fetchUserDetails();
-      setCourseInput('');
-      setSelectedTeacher('');
-      setSelectedCourse(null);
-    } catch (error) {
-      setError('Failed to add course');
-    }
-  };
 
-  const handleDeleteCourse = async (courseId) => {
-    try {
-      await api.delete(`/user-details/courses/${courseId}`);
-      fetchUserDetails();
-    } catch (error) {
-      setError('Failed to delete course');
+ 
+const handleAddCourse = async () => {
+  try {
+    if (!currentSemester || !currentAcademicYear) {
+      setError('Please enter semester and academic year');
+      return;
     }
-  };
+    
+    await api.enrollInCourse({
+      courseId: selectedCourse._id,
+      teacherId: selectedTeacher,
+      semester: currentSemester,
+      academicYear: currentAcademicYear
+    });
+    await fetchEnrolledCourses();
+    resetForm();
+  } catch (error) {
+    console.error('Error adding course:', error);
+    setError('Failed to add course');
+  }
+};
 
-  const handleUpdateMentors = async () => {
-    try {
-      await api.put('/user-details/mentors', {
-        tutorId,
-        acId,
-        hodId
-      });
-      fetchUserDetails();
-      setIsEditing(false);
-    } catch (error) {
-      setError('Failed to update mentors');
-    }
+const handleDeleteCourse = async (courseId) => {
+  try {
+    await api.deleteCourseEnrollment(courseId);
+    await fetchEnrolledCourses();
+  } catch (error) {
+    console.error('Error deleting course:', error);
+    setError('Failed to delete course');
+  }
+};
+
+const handleCourseSearch = async () => {
+  try {
+    const response = await api.get(`/courses/search/${courseInput}`);
+    setSelectedCourse(response.data);
+    const teachersResponse = await api.get(`/user-details/course-teachers/${response.data._id}`);
+    setAvailableTeachers(teachersResponse.data);
+  } catch (error) {
+    setError('Course not found');
+  }
+};
+  const resetForm = () => {
+    setCourseInput('');
+    setSelectedTeacher('');
+    setSelectedCourse(null);
   };
 
   if (loading) return <div>Loading...</div>;
@@ -104,37 +120,6 @@ const PersonalDetails = () => {
         <p><strong>Email:</strong> {userDetails.email}</p>
         <p><strong>Roll Number:</strong> {userDetails.rollNo}</p>
         <p><strong>Department:</strong> {userDetails.department}</p>
-
-        <div className="mentors-section">
-          <h3>Mentors</h3>
-          <p><strong>Tutor:</strong> {userDetails.tutorId?.name || 'Not Assigned'}</p>
-          <p><strong>AC:</strong> {userDetails.acId?.name || 'Not Assigned'}</p>
-          <p><strong>HOD:</strong> {userDetails.hodId?.name || 'Not Assigned'}</p>
-          
-          {isEditing && (
-            <div className="mentor-selection">
-              <select value={tutorId} onChange={(e) => setTutorId(e.target.value)}>
-                <option value="">Select Tutor</option>
-                {allTeachers.map(teacher => (
-                  <option key={teacher._id} value={teacher._id}>{teacher.name}</option>
-                ))}
-              </select>
-              <select value={acId} onChange={(e) => setAcId(e.target.value)}>
-                <option value="">Select AC</option>
-                {allTeachers.map(teacher => (
-                  <option key={teacher._id} value={teacher._id}>{teacher.name}</option>
-                ))}
-              </select>
-              <select value={hodId} onChange={(e) => setHodId(e.target.value)}>
-                <option value="">Select HOD</option>
-                {allTeachers.map(teacher => (
-                  <option key={teacher._id} value={teacher._id}>{teacher.name}</option>
-                ))}
-              </select>
-              <button onClick={handleUpdateMentors}>Update Mentors</button>
-            </div>
-          )}
-        </div>
 
         <div className="courses-section">
           <h3>Enrolled Courses</h3>
@@ -162,28 +147,39 @@ const PersonalDetails = () => {
                   </option>
                 ))}
               </select>
+              <input
+                type="text"
+                value={currentSemester}
+                onChange={(e) => setCurrentSemester(e.target.value)}
+                placeholder="Semester"
+              />
+              <input
+                type="text"
+                value={currentAcademicYear}
+                onChange={(e) => setCurrentAcademicYear(e.target.value)}
+                placeholder="Academic Year"
+              />
               <button onClick={handleAddCourse}>Add Course</button>
             </div>
           )}
 
           <ul className="courses-list">
-            {userDetails.courses?.map(course => (
-              <li key={course.courseId._id}>
-                {course.courseId.courseName} - {course.teacherId.name}
-                <button onClick={() => handleDeleteCourse(course.courseId._id)}>
+            {enrolledCourses.map(enrollment => (
+              <li key={enrollment._id}>
+                {enrollment.courseId.courseName} - {enrollment.teacherId.name}
+                <button onClick={() => handleDeleteCourse(enrollment.courseId._id)}>
                   Delete
                 </button>
               </li>
             ))}
           </ul>
         </div>
-
-        <button onClick={() => setIsEditing(!isEditing)}>
-          {isEditing ? 'Cancel Editing' : 'Edit Details'}
-        </button>
       </div>
     </div>
   );
 };
 
 export default PersonalDetails;
+
+// Add this function before the useEffect
+

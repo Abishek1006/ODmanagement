@@ -11,12 +11,9 @@ router.post('/', protect, restrictToAdmin, createCourse);
 // Get all courses
 router.get('/', protect, getCourses);
 // routes/course.routes.js
-router.get('/teacher-courses', 
-  protect, 
-  restrictToRole(['teacher', 'tutor', 'ac', 'hod']), 
-  getTeacherCourses
-);
 router.get('/:courseId/students-with-od', protect, getStudentsWithOD);
 
 // Add this new route
 router.get('/search/:courseId', protect, getCourseById);module.exports = router;
+
+router.get('/teacher-courses', protect, restrictToRole(['teacher']), getTeacherCourses);

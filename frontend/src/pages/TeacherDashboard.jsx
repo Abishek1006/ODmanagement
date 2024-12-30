@@ -3,13 +3,10 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import CourseDetailsView from '../components/CourseDetailsView';
-
-// Import components for each section
 import TeacherPersonalDetails from '../components/TeacherPersonalDetails';
 import ODApprovalSection from '../components/ODApprovalSection';
 import CourseManagement from '../components/CourseManagement';
 import MyEvents from '../components/MyEvents'; // Reuse existing events component
-
 import '../css/teacher.css'; // Create a separate CSS file for teacher dashboard
 
 const TeacherDashboard = () => {
@@ -92,7 +89,7 @@ const TeacherDashboard = () => {
               <Route path="personal-details" element={<TeacherPersonalDetails />} />
               <Route path="od-approval" element={<ODApprovalSection />} />
               <Route path="courses" element={<CourseManagement />} />
-              <Route path="courses/:courseId" element={<CourseDetailsView />} /> {/* This will now match */}
+              <Route path="courses/:courseId/details" element={<CourseDetailsView />} />
               <Route path="events" element={<MyEvents />} />
             </Routes>
         </main>
@@ -100,5 +97,4 @@ const TeacherDashboard = () => {
     </div>
   );
 };
-
 export default TeacherDashboard;

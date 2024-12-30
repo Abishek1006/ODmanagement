@@ -1,8 +1,8 @@
 // controllers/course.controller.js
 const Course = require('../models/course.model');
-const User = require('../models/user.model'); // Add this line
-const OD = require('../models/od.model'); // Add this line if you are using OD model
-
+const User = require('../models/user.model');
+const CourseEnrollment = require('../models/courseEnrollment.model');
+const OD = require('../models/od.model');
 exports.createCourse = async (req, res) => {
   try {
     const { courseId, courseName, department, teachers } = req.body;
@@ -36,68 +36,71 @@ exports.getCourses = async (req, res) => {
 exports.getTeacherCourses = async (req, res) => {
   try {
     const teacherId = req.user._id;
-    console.log('Teacher ID:', teacherId);
-    
-    const courses = await Course.find({ teachers: teacherId })
-                              .select('courseId courseName department');
-    
-    console.log('Found courses:', courses);
+    const courses = await Course.find({ 
+      teachers: teacherId 
+    }).select('_id courseId courseName department');
+
     res.json(courses);
   } catch (error) {
     console.error('Error in getTeacherCourses:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Error fetching teacher courses',
-      error: error.message 
+      error: error.message
     });
   }
 };
-
-
 // controllers/course.controller.js
 exports.getStudentsWithOD = async (req, res) => {
   try {
     const { courseId } = req.params;
-    
-    // First get the course details
+    const teacherId = req.user._id;
+
+    // Verify teacher teaches this course
     const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
+    if (!course || !course.teachers.includes(teacherId)) {
+      return res.status(403).json({ message: 'Not authorized to view this course' });
     }
 
-    // Find all students enrolled in this course
-    const students = await User.find({
-      'courses.courseId': courseId,
-      primaryRole: 'student'
-    });
+    // Get all enrollments for this course-teacher combination
+    const enrollments = await CourseEnrollment.find({
+      courseId,
+      teacherId
+    }).populate('studentId', 'name rollNo department');
 
-    // Get OD details for each student
-    const studentsWithODDetails = await Promise.all(students.map(async (student) => {
-      const odRequests = await OD.find({
-        studentId: student._id,
-        dateFrom: { $lte: new Date() },
-        dateTo: { $gte: new Date() }
-      });
+    // Get OD details for enrolled students
+    const studentsWithODDetails = await Promise.all(
+      enrollments.map(async (enrollment) => {
+        const activeODs = await OD.find({
+          studentId: enrollment.studentId._id,
+          status: 'approved',
+          dateFrom: { $lte: new Date() },
+          dateTo: { $gte: new Date() }
+        });
 
-      return {
-        _id: student._id,
-        name: student.name,
-        rollNo: student.rollNo,
-        department: student.department,
-        odRequests: odRequests
-      };
-    }));
+        return {
+          _id: enrollment.studentId._id,
+          name: enrollment.studentId.name,
+          rollNo: enrollment.studentId.rollNo,
+          department: enrollment.studentId.department,
+          hasActiveOD: activeODs.length > 0,
+          activeODs: activeODs
+        };
+      })
+    );
 
     res.json({
       courseName: course.courseName,
       courseId: course.courseId,
-      students: studentsWithODDetails
+      totalStudents: enrollments.length,
+      studentsWithOD: studentsWithODDetails
     });
 
   } catch (error) {
-    console.error('Error fetching students with OD:', error);
+    console.error('Error:', error);
     res.status(500).json({ message: 'Error fetching students data' });
   }
 };
+
 exports.getCourseById = async (req, res) => {
   try {
     const course = await Course.findOne({ courseId: req.params.courseId });
