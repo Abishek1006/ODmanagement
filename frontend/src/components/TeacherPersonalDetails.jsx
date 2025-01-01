@@ -10,8 +10,10 @@ const TeacherPersonalDetails = () => {
     staffId: '',
     courses: []
   });
+  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [teachingCourses, setTeachingCourses] = useState([]);
 
   useEffect(() => {
     const fetchTeacherDetails = async () => {
@@ -38,7 +40,39 @@ const TeacherPersonalDetails = () => {
     };
 
     fetchTeacherDetails();
+    fetchTeachingCourses();
   }, []);
+
+  const fetchTeachingCourses = async () => {
+    try {
+      const response = await api.get('/courses/teacher-courses'); // Updated correct endpoint
+      setTeachingCourses(response.data);
+    } catch (error) {
+      console.error('Error fetching teaching courses:', error);
+    }
+  };
+
+  const handleAddCourse = async () => {
+    try {
+      const courseId = window.prompt('Enter Course ID (e.g., CS102):');
+      if (courseId) {
+        await api.post('/user-details/teaching-courses/add', { courseId });
+        fetchTeachingCourses();
+      }
+    } catch (error) {
+      console.error('Error adding course:', error);
+    }
+  };
+  
+  const handleRemoveCourse = async (courseId) => {
+    try {
+      await api.delete(`/user-details/teaching-courses/${courseId}`);
+      fetchTeachingCourses(); // Refresh the list
+    } catch (error) {
+      console.error('Error removing course:', error);
+    }
+  };
+  
 
   if (loading) return <div>Loading teacher details...</div>;
   if (error) return <div className="error">{error}</div>;
@@ -66,21 +100,22 @@ const TeacherPersonalDetails = () => {
           <label>Department:</label>
           <span>{teacherDetails.department}</span>
         </div>
-          <div className="courses-section">
-            <h3>Teaching Courses</h3>
-            {teacherDetails.courses && teacherDetails.courses.length > 0 ? (
-              <ul>
-                {teacherDetails.courses.map((course, index) => (
-                  <li key={index}>
-                    {course.courseId ? course.courseId.courseName : 'Course Name Not Available'}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>No courses assigned</p>
-            )}
+
+        <div className="courses-section">
+          <h3>Teaching Courses</h3>
+          <div className="teaching-courses-section">
+            <div className="courses-list">
+              {teachingCourses.map(course => (
+                <div key={course._id} className="course-item">
+                  <span>{course.courseName}</span>
+                  <button onClick={() => handleRemoveCourse(course._id)}>Remove</button>
+                </div>
+              ))}
+              <button onClick={handleAddCourse}>Add New Course</button>
+            </div>
           </div>
         </div>
+      </div>
     </div>
   );
 };

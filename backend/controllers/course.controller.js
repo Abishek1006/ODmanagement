@@ -126,3 +126,21 @@ const fetchCourses = async () => {
     setLoading(false);
   }
 };
+
+exports.addTeachingCourse = async (req, res) => {
+  try {
+    const { courseId } = req.body; // This will now be "CS102"
+    const course = await Course.findOne({ courseId: courseId });
+    if (!course) {
+      return res.status(404).json({ message: 'Course not found' });
+    }
+    
+    await Course.findByIdAndUpdate(course._id, {
+      $addToSet: { teachers: req.user._id }
+    });
+    
+    res.status(200).json({ message: 'Course added successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error adding course', error: error.message });
+  }
+};

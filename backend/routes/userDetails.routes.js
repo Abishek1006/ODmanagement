@@ -9,7 +9,10 @@ const {
   updateMentors,
   getCourseTeachers,
   getAllTeachers,
-  getEnrolledCourses
+  getEnrolledCourses,
+  addTeachingCourse,
+  removeTeachingCourse,
+  getTeachingCourses
 } = require('../controllers/userDetails.controller');
 
 const router = express.Router();
@@ -23,4 +26,12 @@ router.get('/course-teachers/:courseId', protect, getCourseTeachers);
 router.get('/all-teachers', protect, getAllTeachers);
 
 
+
+router.post('/teaching-courses/add', protect, restrictToRole(['teacher']), addTeachingCourse);
+router.delete('/teaching-courses/:courseId', protect, restrictToRole(['teacher']), removeTeachingCourse);
+router.get('/teaching-courses', protect, restrictToRole(['teacher']), getTeachingCourses);
+
 module.exports = router;
+
+
+

@@ -4,33 +4,22 @@ const User = require('../models/user.model');
 const Course = require('../models/course.model');
 const CourseEnrollment = require('../models/courseEnrollment.model');
 const { protect, restrictToRole } = require('../middleware/auth.middleware');
-exports.getUserDetails = asyncHandler(async (req, res) => {
+
+const getUserDetails = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
-    .populate({
-      path: 'courses.courseId',
-      select: 'courseName courseId department'
-    })
-    .populate({
-      path: 'courses.teacherId',
-      select: 'name email'
-    });
+    .populate('courses.courseId')
+    .populate('courses.teacherId')
+    .lean();
 
-  if (!user) {
-    res.status(404);
-    throw new Error('User not found');
-  }
-
-  // Add role-specific data for teachers
   if (user.primaryRole === 'teacher') {
-    const teacherCourses = await Course.find({ teachers: user._id });
-    user.teachingCourses = teacherCourses;
+    const teachingCourses = await Course.find({ teachers: user._id });
+    user.teachingCourses = teachingCourses;
   }
 
   res.json(user);
 });
 
-
-exports.addCourse = asyncHandler(async (req, res) => {
+const addCourse = asyncHandler(async (req, res) => {
   const { courseId, teacherId, semester, academicYear } = req.body;
   
   // Verify course exists
@@ -63,7 +52,7 @@ exports.addCourse = asyncHandler(async (req, res) => {
   res.status(201).json(populatedEnrollment);
 });
 
-exports.getEnrolledCourses = asyncHandler(async (req, res) => {
+const getEnrolledCourses = asyncHandler(async (req, res) => {
   console.log('Fetching enrolled courses for user:', req.user._id);
   const enrollments = await CourseEnrollment.find({ 
     studentId: req.user._id
@@ -75,8 +64,7 @@ exports.getEnrolledCourses = asyncHandler(async (req, res) => {
   res.json(enrollments);
 });
 
-
-exports.deleteCourse = asyncHandler(async (req, res) => {
+const deleteCourse = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
   
   // Delete the enrollment directly
@@ -93,42 +81,7 @@ exports.deleteCourse = asyncHandler(async (req, res) => {
   res.json({ message: 'Course deleted successfully' });
 });
 
-exports.addCourse = asyncHandler(async (req, res) => {
-  const { courseId, teacherId, semester, academicYear } = req.body;
-  
-  // Verify course exists
-  const course = await Course.findById(courseId);
-  if (!course) {
-    res.status(404);
-    throw new Error('Course not found');
-  }
-
-  // Verify teacher exists and teaches this course
-  const teacher = await User.findById(teacherId);
-  if (!teacher || !course.teachers.includes(teacherId)) {
-    res.status(400);
-    throw new Error('Invalid teacher for this course');
-  }
-
-  // Create enrollment
-  const enrollment = await CourseEnrollment.create({
-    courseId,
-    studentId: req.user._id,
-    teacherId,
-    semester,
-    academicYear
-  });
-
-  const populatedEnrollment = await CourseEnrollment.findById(enrollment._id)
-    .populate('courseId')
-    .populate('teacherId', 'name email');
-
-  res.status(201).json(populatedEnrollment);
-});
-
-
-
-exports.updateMentors = asyncHandler(async (req, res) => {
+const updateMentors = asyncHandler(async (req, res) => {
   const { tutorId, acId, hodId } = req.body;
   const user = await User.findById(req.user._id);
   
@@ -146,7 +99,7 @@ exports.updateMentors = asyncHandler(async (req, res) => {
   res.json(populatedUser);
 });
 
-exports.getCourseTeachers = asyncHandler(async (req, res) => {
+const getCourseTeachers = asyncHandler(async (req, res) => {
   const { courseId } = req.params;
   const course = await Course.findOne({ courseId }).populate('teachers');
   if (!course) {
@@ -156,12 +109,12 @@ exports.getCourseTeachers = asyncHandler(async (req, res) => {
   res.json(course.teachers);
 });
 
-exports.getAllTeachers = asyncHandler(async (req, res) => {
+const getAllTeachers = asyncHandler(async (req, res) => {
   const teachers = await User.find({ primaryRole: 'teacher' }, 'name _id');
   res.json(teachers);
 });
 
-exports.updateUserDetails = asyncHandler(async (req, res) => {
+const updateUserDetails = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const updateData = req.body;
 
@@ -190,3 +143,64 @@ exports.updateUserDetails = asyncHandler(async (req, res) => {
 
   res.json(user);
 });
+
+const addTeachingCourse = asyncHandler(async (req, res) => {
+  const { courseId } = req.body;
+  const teacherId = req.user._id;
+  
+  // Find course by courseId (like CS102)
+  const course = await Course.findOne({ courseId: courseId });
+  
+  if (!course) {
+    res.status(404);
+    throw new Error('Course not found');
+  }
+
+  // Add teacher to course's teachers array
+  await Course.findByIdAndUpdate(course._id, {
+    $addToSet: { teachers: teacherId }
+  });
+
+  // Also update user's courses array
+  await User.findByIdAndUpdate(teacherId, {
+    $addToSet: { 
+      courses: {
+        courseId: course._id,
+        teacherId: teacherId
+      }
+    }
+  });
+  
+  res.status(200).json({ message: 'Course added successfully' });
+});
+
+const removeTeachingCourse = asyncHandler(async (req, res) => {
+  const { courseId } = req.params;
+  const teacherId = req.user._id;
+  
+  await Course.findByIdAndUpdate(courseId, {
+    $pull: { teachers: teacherId }
+  });
+  
+  res.status(200).json({ message: 'Course removed successfully' });
+});
+
+const getTeachingCourses = asyncHandler(async (req, res) => {
+  const teacherId = req.user._id;
+  const courses = await Course.find({ teachers: teacherId });
+  res.json(courses);
+});
+
+module.exports = {
+  getUserDetails,
+  updateUserDetails,
+  addCourse,
+  deleteCourse,
+  updateMentors,
+  getCourseTeachers,
+  getAllTeachers,
+  getEnrolledCourses,
+  addTeachingCourse,
+  removeTeachingCourse,
+  getTeachingCourses
+};
