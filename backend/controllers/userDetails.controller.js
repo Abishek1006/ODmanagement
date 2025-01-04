@@ -20,37 +20,38 @@ const getUserDetails = asyncHandler(async (req, res) => {
 });
 
 const addCourse = asyncHandler(async (req, res) => {
-  const { courseId, teacherId, semester, academicYear } = req.body;
+  const { courseId, teacherStaffId, semester, academicYear } = req.body;
   
-  // Verify course exists
-  const course = await Course.findById(courseId);
+  // Find course by courseId (like CS101)
+  const course = await Course.findOne({ courseId: courseId });
   if (!course) {
     res.status(404);
     throw new Error('Course not found');
   }
 
-  // Verify teacher exists and teaches this course
-  const teacher = await User.findById(teacherId);
-  if (!teacher || !course.teachers.includes(teacherId)) {
+  // Find teacher by staffId
+  const teacher = await User.findOne({ staffId: teacherStaffId });
+  if (!teacher || !course.teachers.includes(teacher._id)) {
     res.status(400);
     throw new Error('Invalid teacher for this course');
   }
 
   // Create enrollment
   const enrollment = await CourseEnrollment.create({
-    courseId,
+    courseId: course._id,
     studentId: req.user._id,
-    teacherId,
+    teacherId: teacher._id,
     semester,
     academicYear
   });
 
   const populatedEnrollment = await CourseEnrollment.findById(enrollment._id)
     .populate('courseId')
-    .populate('teacherId', 'name email');
+    .populate('teacherId', 'name email staffId');
 
   res.status(201).json(populatedEnrollment);
 });
+
 
 const getEnrolledCourses = asyncHandler(async (req, res) => {
   console.log('Fetching enrolled courses for user:', req.user._id);

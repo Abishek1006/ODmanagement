@@ -23,8 +23,9 @@ const CourseManagement = () => {
   }, []);
 
   const handleCourseClick = (courseId) => {
-    navigate(`/teacher/courses/${courseId}/details`);
+    navigate(`/teacher-dashboard/courses/${courseId}/details`); // Update this path
   };
+  
 
   if (loading) return <div>Loading courses...</div>;
 

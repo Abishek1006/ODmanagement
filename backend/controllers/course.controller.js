@@ -103,7 +103,11 @@ exports.getStudentsWithOD = async (req, res) => {
 
 exports.getCourseById = async (req, res) => {
   try {
-    const course = await Course.findOne({ courseId: req.params.courseId });
+    const course = await Course.findOne({ courseId: req.params.courseId })
+      .populate({
+        path: 'teachers',
+        select: 'name staffId email'
+      });
     if (!course) {
       return res.status(404).json({ message: 'Course not found' });
     }
@@ -113,7 +117,6 @@ exports.getCourseById = async (req, res) => {
     res.status(500).json({ message: 'Error fetching course', error: error.message });
   }
 };
-
 const fetchCourses = async () => {
   try {
     const response = await api.get('/teacher-courses');  // Corrected route

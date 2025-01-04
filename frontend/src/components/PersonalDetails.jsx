@@ -58,30 +58,37 @@ const PersonalDetails = () => {
       setError('Failed to load enrolled courses');
     }
   };
-
-
-
- 
-const handleAddCourse = async () => {
-  try {
-    if (!currentSemester || !currentAcademicYear) {
-      setError('Please enter semester and academic year');
-      return;
+  const handleCourseSearch = async () => {
+    try {
+      const response = await api.get(`/courses/search/${courseInput}`);
+      setSelectedCourse(response.data);
+      setAvailableTeachers(response.data.teachers);
+    } catch (error) {
+      setError('Course not found');
     }
-    
-    await api.enrollInCourse({
-      courseId: selectedCourse._id,
-      teacherId: selectedTeacher,
-      semester: currentSemester,
-      academicYear: currentAcademicYear
-    });
-    await fetchEnrolledCourses();
-    resetForm();
-  } catch (error) {
-    console.error('Error adding course:', error);
-    setError('Failed to add course');
-  }
-};
+  };
+  
+  const handleAddCourse = async () => {
+    try {
+      if (!currentSemester || !currentAcademicYear) {
+        setError('Please enter semester and academic year');
+        return;
+      }
+      
+      await api.enrollInCourse({
+        courseId: selectedCourse.courseId, // Using courseId like "CS101"
+        teacherStaffId: selectedTeacher, // Using staffId instead of MongoDB ID
+        semester: currentSemester,
+        academicYear: currentAcademicYear
+      });
+      await fetchEnrolledCourses();
+      resetForm();
+    } catch (error) {
+      console.error('Error adding course:', error);
+      setError('Failed to add course');
+    }
+  };
+  
 
 const handleDeleteCourse = async (courseId) => {
   try {
@@ -93,16 +100,7 @@ const handleDeleteCourse = async (courseId) => {
   }
 };
 
-const handleCourseSearch = async () => {
-  try {
-    const response = await api.get(`/courses/search/${courseInput}`);
-    setSelectedCourse(response.data);
-    const teachersResponse = await api.get(`/user-details/course-teachers/${response.data._id}`);
-    setAvailableTeachers(teachersResponse.data);
-  } catch (error) {
-    setError('Course not found');
-  }
-};
+
   const resetForm = () => {
     setCourseInput('');
     setSelectedTeacher('');
@@ -132,37 +130,35 @@ const handleCourseSearch = async () => {
             />
             <button onClick={handleCourseSearch}>Search Course</button>
           </div>
-
-          {selectedCourse && (
-            <div className="course-add">
-              <p>Found: {selectedCourse.courseName}</p>
-              <select
-                value={selectedTeacher}
-                onChange={(e) => setSelectedTeacher(e.target.value)}
-              >
-                <option value="">Select Teacher</option>
-                {availableTeachers.map(teacher => (
-                  <option key={teacher._id} value={teacher._id}>
-                    {teacher.name}
-                  </option>
-                ))}
-              </select>
-              <input
-                type="text"
-                value={currentSemester}
-                onChange={(e) => setCurrentSemester(e.target.value)}
-                placeholder="Semester"
-              />
-              <input
-                type="text"
-                value={currentAcademicYear}
-                onChange={(e) => setCurrentAcademicYear(e.target.value)}
-                placeholder="Academic Year"
-              />
-              <button onClick={handleAddCourse}>Add Course</button>
-            </div>
-          )}
-
+            {selectedCourse && (
+              <div className="course-add">
+                <p>Found: {selectedCourse.courseName}</p>
+                <select
+                  value={selectedTeacher}
+                  onChange={(e) => setSelectedTeacher(e.target.value)}
+                >
+                  <option value="">Select Teacher</option>
+                  {availableTeachers.map(teacher => (
+                    <option key={teacher._id} value={teacher.staffId}>
+                      {teacher.name} ({teacher.staffId})
+                    </option>
+                  ))}
+                </select>
+                <input
+                  type="text"
+                  value={currentSemester}
+                  onChange={(e) => setCurrentSemester(e.target.value)}
+                  placeholder="Semester"
+                />
+                <input
+                  type="text"
+                  value={currentAcademicYear}
+                  onChange={(e) => setCurrentAcademicYear(e.target.value)}
+                  placeholder="Academic Year"
+                />
+                <button onClick={handleAddCourse}>Add Course</button>
+              </div>
+            )}
           <ul className="courses-list">
             {enrolledCourses.map(enrollment => (
               <li key={enrollment._id}>
