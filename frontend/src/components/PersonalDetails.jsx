@@ -12,18 +12,21 @@ const PersonalDetails = () => {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [availableTeachers, setAvailableTeachers] = useState([]);
   const [allTeachers, setAllTeachers] = useState([]);
-  const [tutorId, setTutorId] = useState('');
-  const [acId, setAcId] = useState('');
-  const [hodId, setHodId] = useState('');
   const [enrolledCourses, setEnrolledCourses] = useState([]);
   const [currentSemester, setCurrentSemester] = useState('');
   const [currentAcademicYear, setCurrentAcademicYear] = useState('');
+  const [selectedMentors, setSelectedMentors] = useState({
+    tutorId: '',
+    acId: '',
+    hodId: ''
+  });
 
   useEffect(() => {
     fetchUserDetails();
     fetchAllTeachers();
     fetchEnrolledCourses();
   }, []);
+
   const fetchAllTeachers = async () => {
     try {
       const response = await api.get('/user-details/all-teachers');
@@ -38,9 +41,11 @@ const PersonalDetails = () => {
     try {
       const response = await api.get('/user-details');
       setUserDetails(response.data);
-      setTutorId(response.data.tutorId?._id || '');
-      setAcId(response.data.acId?._id || '');
-      setHodId(response.data.hodId?._id || '');
+      setSelectedMentors({
+        tutorId: response.data.tutorId?._id || '',
+        acId: response.data.acId?._id || '',
+        hodId: response.data.hodId?._id || ''
+      });
       setLoading(false);
     } catch (error) {
       setError('Failed to load user details');
@@ -58,6 +63,7 @@ const PersonalDetails = () => {
       setError('Failed to load enrolled courses');
     }
   };
+
   const handleCourseSearch = async () => {
     try {
       const response = await api.get(`/courses/search/${courseInput}`);
@@ -76,8 +82,8 @@ const PersonalDetails = () => {
       }
       
       await api.enrollInCourse({
-        courseId: selectedCourse.courseId, // Using courseId like "CS101"
-        teacherStaffId: selectedTeacher, // Using staffId instead of MongoDB ID
+        courseId: selectedCourse.courseId,
+        teacherStaffId: selectedTeacher,
         semester: currentSemester,
         academicYear: currentAcademicYear
       });
@@ -88,23 +94,39 @@ const PersonalDetails = () => {
       setError('Failed to add course');
     }
   };
-  
 
-const handleDeleteCourse = async (courseId) => {
-  try {
-    await api.deleteCourseEnrollment(courseId);
-    await fetchEnrolledCourses();
-  } catch (error) {
-    console.error('Error deleting course:', error);
-    setError('Failed to delete course');
-  }
-};
-
+  const handleDeleteCourse = async (courseId) => {
+    try {
+      await api.deleteCourseEnrollment(courseId);
+      await fetchEnrolledCourses();
+    } catch (error) {
+      console.error('Error deleting course:', error);
+      setError('Failed to delete course');
+    }
+  };
 
   const resetForm = () => {
     setCourseInput('');
     setSelectedTeacher('');
     setSelectedCourse(null);
+  };
+
+  const handleMentorChange = async () => {
+    try {
+      // Validate that at least one mentor is selected
+      if (!selectedMentors.tutorId && !selectedMentors.acId && !selectedMentors.hodId) {
+        setError('Please select at least one mentor');
+        return;
+      }
+
+      await api.put('/user-details/update-mentors', selectedMentors);
+      await fetchUserDetails(); // This will refresh the user details with populated mentor information
+      setIsEditing(false);
+      setError(null);
+    } catch (error) {
+      console.error('Error updating mentors:', error);
+      setError('Failed to update mentors');
+    }
   };
 
   if (loading) return <div>Loading...</div>;
@@ -113,11 +135,77 @@ const handleDeleteCourse = async (courseId) => {
   return (
     <div className="personal-details">
       <h2>Personal Details</h2>
-      <div className="details-view">
-        <p><strong>Name:</strong> {userDetails.name}</p>
-        <p><strong>Email:</strong> {userDetails.email}</p>
-        <p><strong>Roll Number:</strong> {userDetails.rollNo}</p>
-        <p><strong>Department:</strong> {userDetails.department}</p>
+      <div className="details-section">
+        <div className="basic-details">
+          <p><strong>Name:</strong> {userDetails.name}</p>
+          <p><strong>Email:</strong> {userDetails.email}</p>
+          <p><strong>Roll Number:</strong> {userDetails.rollNo}</p>
+          <p><strong>Department:</strong> {userDetails.department}</p>
+        </div>
+
+        <div className="mentors-section">
+          <h3>Mentors</h3>
+          {!isEditing ? (
+            <div className="mentors-display">
+              <p><strong>Tutor:</strong> {userDetails.tutorId?.name || 'Not assigned'}</p>
+              <p><strong>Academic Coordinator:</strong> {userDetails.acId?.name || 'Not assigned'}</p>
+              <p><strong>HOD:</strong> {userDetails.hodId?.name || 'Not assigned'}</p>
+              <button onClick={() => setIsEditing(true)}>Change Mentors</button>
+            </div>
+          ) : (
+            <div className="mentors-edit">
+              <div className="mentor-select">
+                <label>Tutor:</label>
+                <select
+                  value={selectedMentors.tutorId}
+                  onChange={(e) => setSelectedMentors({...selectedMentors, tutorId: e.target.value})}
+                >
+                  <option value="">Select Tutor</option>
+                  {allTeachers.map(teacher => (
+                    <option key={teacher._id} value={teacher._id}>
+                      {teacher.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mentor-select">
+                <label>Academic Coordinator:</label>
+                <select
+                  value={selectedMentors.acId}
+                  onChange={(e) => setSelectedMentors({...selectedMentors, acId: e.target.value})}
+                >
+                  <option value="">Select AC</option>
+                  {allTeachers.map(teacher => (
+                    <option key={teacher._id} value={teacher._id}>
+                      {teacher.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mentor-select">
+                <label>HOD:</label>
+                <select
+                  value={selectedMentors.hodId}
+                  onChange={(e) => setSelectedMentors({...selectedMentors, hodId: e.target.value})}
+                >
+                  <option value="">Select HOD</option>
+                  {allTeachers.map(teacher => (
+                    <option key={teacher._id} value={teacher._id}>
+                      {teacher.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="mentor-actions">
+                <button onClick={handleMentorChange}>Save Changes</button>
+                <button onClick={() => setIsEditing(false)}>Cancel</button>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="courses-section">
           <h3>Enrolled Courses</h3>
@@ -130,35 +218,35 @@ const handleDeleteCourse = async (courseId) => {
             />
             <button onClick={handleCourseSearch}>Search Course</button>
           </div>
-            {selectedCourse && (
-              <div className="course-add">
-                <p>Found: {selectedCourse.courseName}</p>
-                <select
-                  value={selectedTeacher}
-                  onChange={(e) => setSelectedTeacher(e.target.value)}
-                >
-                  <option value="">Select Teacher</option>
-                  {availableTeachers.map(teacher => (
-                    <option key={teacher._id} value={teacher.staffId}>
-                      {teacher.name} ({teacher.staffId})
-                    </option>
-                  ))}
-                </select>
-                <input
-                  type="text"
-                  value={currentSemester}
-                  onChange={(e) => setCurrentSemester(e.target.value)}
-                  placeholder="Semester"
-                />
-                <input
-                  type="text"
-                  value={currentAcademicYear}
-                  onChange={(e) => setCurrentAcademicYear(e.target.value)}
-                  placeholder="Academic Year"
-                />
-                <button onClick={handleAddCourse}>Add Course</button>
-              </div>
-            )}
+          {selectedCourse && (
+            <div className="course-add">
+              <p>Found: {selectedCourse.courseName}</p>
+              <select
+                value={selectedTeacher}
+                onChange={(e) => setSelectedTeacher(e.target.value)}
+              >
+                <option value="">Select Teacher</option>
+                {availableTeachers.map(teacher => (
+                  <option key={teacher._id} value={teacher.staffId}>
+                    {teacher.name} ({teacher.staffId})
+                  </option>
+                ))}
+              </select>
+              <input
+                type="text"
+                value={currentSemester}
+                onChange={(e) => setCurrentSemester(e.target.value)}
+                placeholder="Semester"
+              />
+              <input
+                type="text"
+                value={currentAcademicYear}
+                onChange={(e) => setCurrentAcademicYear(e.target.value)}
+                placeholder="Academic Year"
+              />
+              <button onClick={handleAddCourse}>Add Course</button>
+            </div>
+          )}
           <ul className="courses-list">
             {enrolledCourses.map(enrollment => (
               <li key={enrollment._id}>
@@ -176,6 +264,3 @@ const handleDeleteCourse = async (courseId) => {
 };
 
 export default PersonalDetails;
-
-// Add this function before the useEffect
-

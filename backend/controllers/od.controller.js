@@ -257,6 +257,14 @@ exports.getStudentsWithOD = async (req, res) => {
 exports.createExternalODRequest = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('tutorId acId hodId');
+    
+    // Validate proof link for external ODs
+    if (!req.body.proof) {
+      return res.status(400).json({ 
+        message: 'Proof link is required for external OD requests' 
+      });
+    }
+
     const odRequest = await OD.create({
       studentId: req.user._id,
       ...req.body,
@@ -264,14 +272,23 @@ exports.createExternalODRequest = async (req, res) => {
       acId: user.acId,
       hodId: user.hodId,
       status: 'pending',
-      isExternal: true
+      isExternal: true,
+      proof: req.body.proof // Explicitly set the proof field
     });
-    res.status(201).json({ message: 'External OD request created successfully', odRequest });
+    
+    res.status(201).json({ 
+      message: 'External OD request created successfully', 
+      odRequest 
+    });
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).json({ message: 'Error creating external OD request', error: error.message });
+    res.status(500).json({ 
+      message: 'Error creating external OD request', 
+      error: error.message 
+    });
   }
 };
+
 exports.getTeacherODRequests = async (req, res) => {
   try {
     const teacherId = req.user._id;

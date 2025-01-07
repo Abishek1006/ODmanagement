@@ -10,7 +10,8 @@ const ExternalODSection = () => {
     dateTo: '',
     reason: '',
     location: '',
-    eventType: ''
+    eventType: '',
+    proof: '' // Add this new field
   });
 
   const [submitted, setSubmitted] = useState(false);
@@ -109,26 +110,36 @@ const ExternalODSection = () => {
             required
           />
         </div>
+          <div className="form-group">
+            <label>Reason/Description:</label>
+            <textarea
+              name="reason"
+              value={formData.reason}
+              onChange={handleChange}
+              placeholder="Provide detailed reason for the OD request"
+              required
+              rows="4"
+            />
+          </div>
 
-        <div className="form-group">
-          <label>Reason/Description:</label>
-          <textarea
-            name="reason"
-            value={formData.reason}
-            onChange={handleChange}
-            placeholder="Provide detailed reason for the OD request"
-            required
-            rows="4"
-          />
-        </div>
+          <div className="form-group">
+            <label>Event Verification Link:</label>
+            <input
+              type="url"
+              name="proof"
+              value={formData.proof}
+              onChange={handleChange}
+              placeholder="Enter event link (LinkedIn post, Instagram post, Event website etc.)"
+              required
+            />
+          </div>
 
-        <button type="submit" className="submit-button">
-          Submit External OD Request
-        </button>
-      </form>
-    </div>
-  );
-};
+          <button type="submit" className="submit-button">
+            Submit External OD Request
+          </button>
+        </form>
+      </div>
+    );
+  };
 
-export default ExternalODSection;
-
+  export default ExternalODSection;

@@ -17,6 +17,7 @@ const odSchema = new mongoose.Schema({
   isExternal: { type: Boolean, default: false },
   location: { type: String },
   eventType: { type: String },
+  proof: { type: String, default: false },
   immediateApprover: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   immediateApprovalDate: { type: Date },
   studentDetails: {

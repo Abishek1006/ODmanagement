@@ -7,6 +7,9 @@ const { protect, restrictToRole } = require('../middleware/auth.middleware');
 
 const getUserDetails = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id)
+    .populate('tutorId', 'name email staffId')
+    .populate('acId', 'name email staffId')
+    .populate('hodId', 'name email staffId')
     .populate('courses.courseId')
     .populate('courses.teacherId')
     .lean();
@@ -111,7 +114,14 @@ const getCourseTeachers = asyncHandler(async (req, res) => {
 });
 
 const getAllTeachers = asyncHandler(async (req, res) => {
-  const teachers = await User.find({ primaryRole: 'teacher' }, 'name _id');
+  const teachers = await User.find({
+    $or: [
+      { primaryRole: 'teacher' },
+      { primaryRole: 'tutor' },
+      { primaryRole: 'ac' },
+      { primaryRole: 'hod' }
+    ]
+  }, 'name _id primaryRole');
   res.json(teachers);
 });
 

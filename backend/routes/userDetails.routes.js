@@ -17,6 +17,7 @@ const {
 
 const router = express.Router();
 
+router.put('/update-mentors', protect, updateMentors);
 router.get('/', protect, getUserDetails);
 router.put('/', protect, updateUserDetails);
 router.post('/courses/enroll', protect, addCourse);
