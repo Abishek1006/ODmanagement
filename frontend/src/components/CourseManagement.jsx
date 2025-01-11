@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
+import '../css/CourseManagement.css';
 
 const CourseManagement = () => {
   const [courses, setCourses] = useState([]);

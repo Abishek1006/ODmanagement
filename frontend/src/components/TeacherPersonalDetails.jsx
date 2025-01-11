@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import '../css/teacher.css';
+import '../css/TeacherPersonalDetails.css';
 
 const TeacherPersonalDetails = () => {
   const [teacherDetails, setTeacherDetails] = useState({
@@ -10,11 +10,9 @@ const TeacherPersonalDetails = () => {
     staffId: '',
     courses: []
   });
-  
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [teachingCourses, setTeachingCourses] = useState([]);
-
   useEffect(() => {
     const fetchTeacherDetails = async () => {
       try {

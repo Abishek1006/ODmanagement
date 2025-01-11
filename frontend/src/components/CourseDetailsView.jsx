@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../services/api';
+import '../css/CourseDetailsView.css';
 
 const CourseDetailsView = () => {
   const [studentsWithOD, setStudentsWithOD] = useState(null);

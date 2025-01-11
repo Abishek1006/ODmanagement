@@ -102,7 +102,7 @@ const StudentDashboard = () => {
                   className={location.pathname.includes('create-event') ? 'active' : ''}
                   onClick={() => handleSectionChange('create-event')}
                 >
-                  Create Event abdjkhaskhska
+                  Create Event 
                 </button>
               </li>
             )}
