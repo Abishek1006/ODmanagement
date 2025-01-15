@@ -1,10 +1,8 @@
 import "../css/EventCard.css";
-import React, { useState } from 'react';
+import React, { useState } from 'react'; 
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { requestOD } from '../services/eventservice';
-
-
 const EventCard = ({ event }) => {
   const navigate = useNavigate();
   const [showODForm, setShowODForm] = useState(false);
@@ -16,10 +14,8 @@ const EventCard = ({ event }) => {
     eventName: event.name
   });
   const [dateError, setDateError] = useState('');
-
   // Get user roles from the API to determine visibility
   const user = api.getUserRoles();
-
   // Function to validate date inputs for the OD request
   const validateDates = () => {
     const fromDate = new Date(odData.dateFrom);
@@ -82,110 +78,112 @@ const EventCard = ({ event }) => {
     }
   };
 
+  const handleRegister = () => {
+    window.open(event.formLink, '_blank');
+  };
+
   return (
     <div className="event-card">
-      {event.imageUrl && <img src={event.imageUrl} alt={event.name} className="event-image" />}
-      <div className="event-details">
-        <h3>{event.name}</h3>
-        <p>Prize: {event.prize}</p>
-        <p>Entry Fee: ₹{event.entryFee}</p>
-        <p>Type: {event.entryType}</p>
+      {event.imageUrl && <img src={event.imageUrl} alt={event.name} />}
+      <h3>{event.name}</h3>
+      <p>Prize: {event.prize}</p>
+      <p>Entry Fee: ₹{event.entryFee}</p>
+      <p>Type: {event.entryType}</p>
+      <button onClick={handleRegister}>Register Now</button>
 
-        {(user.isAdmin || user.isLeader) && (
-          <button
-            className="delete-button"
-            onClick={handleDelete}
-          >
-            Delete
-          </button>
-        )}
-
-        <button onClick={(e) => {
-          e.stopPropagation();
-          setShowODForm(!showODForm);
-        }}>
-          Request OD
-        </button>
-
+      {(user.isAdmin || user.isLeader) && (
         <button
-          className="view-details-button"
-          onClick={(e) => {
-            e.stopPropagation();
-            setShowDetailsModal(true);
-          }}
+          className="delete-button"
+          onClick={handleDelete}
         >
-          View More Details
+          Delete
         </button>
+      )}
 
-        {showODForm && (
-          <form onSubmit={handleRequestOD} className="od-form">
-            <div className="event-summary">
-              <h4>Event Details</h4>
-              <p>Event Name: {event.name}</p>
-              <p>Entry Type: {event.entryType}</p>
-            </div>
+      <button onClick={(e) => {
+        e.stopPropagation();
+        setShowODForm(!showODForm);
+      }}>
+        Request OD
+      </button>
 
-            <div className="form-group">
-              <label>Start Date:</label>
-              <input
-                type="date"
-                name="dateFrom"
-                value={odData.dateFrom}
-                onChange={(e) => setODData({ ...odData, dateFrom: e.target.value })}
-                required
-              />
-            </div>
+      <button
+        className="view-details-button"
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowDetailsModal(true);
+        }}
+      >
+        View More Details
+      </button>
 
-            <div className="form-group">
-              <label>End Date:</label>
-              <input
-                type="date"
-                name="dateTo"
-                value={odData.dateTo}
-                onChange={(e) => setODData({ ...odData, dateTo: e.target.value })}
-                required
-              />
-            </div>
-
-            {dateError && <p className="error-message">{dateError}</p>}
-
-            <div className="form-group">
-              <label>Reason for OD:</label>
-              <textarea
-                name="reason"
-                value={odData.reason}
-                onChange={(e) => setODData({ ...odData, reason: e.target.value })}
-                placeholder="Provide detailed reason for OD request"
-                required
-                minLength="10"
-                maxLength="500"
-              />
-            </div>
-
-            <div className="form-actions">
-              <button type="submit">Submit OD Request</button>
-              <button type="button" onClick={() => setShowODForm(false)}>Cancel</button>
-            </div>
-          </form>
-        )}
-
-        {/* Modal for event details */}
-        {showDetailsModal && (
-          <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
-            <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-              <button className="close-button" onClick={() => setShowDetailsModal(false)}>×</button>
-              <h2>{event.name}</h2>
-              {event.imageUrl && <img src={event.imageUrl} alt={event.name} className="modal-event-image" />}
-              <p><strong>Prize:</strong> {event.prize}</p>
-              <p><strong>Entry Fee:</strong> ₹{event.entryFee}</p>
-              <p><strong>Type:</strong> {event.entryType}</p>
-              <p><strong>Details:</strong> {event.details}</p> {/* Full event details */}
-            </div>
+      {showODForm && (
+        <form onSubmit={handleRequestOD} className="od-form">
+          <div className="event-summary">
+            <h4>Event Details</h4>
+            <p>Event Name: {event.name}</p>
+            <p>Entry Type: {event.entryType}</p>
           </div>
-        )}
-      </div>
+
+          <div className="form-group">
+            <label>Start Date:</label>
+            <input
+              type="date"
+              name="dateFrom"
+              value={odData.dateFrom}
+              onChange={(e) => setODData({ ...odData, dateFrom: e.target.value })}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label>End Date:</label>
+            <input
+              type="date"
+              name="dateTo"
+              value={odData.dateTo}
+              onChange={(e) => setODData({ ...odData, dateTo: e.target.value })}
+              required
+            />
+          </div>
+
+          {dateError && <p className="error-message">{dateError}</p>}
+
+          <div className="form-group">
+            <label>Reason for OD:</label>
+            <textarea
+              name="reason"
+              value={odData.reason}
+              onChange={(e) => setODData({ ...odData, reason: e.target.value })}
+              placeholder="Provide detailed reason for OD request"
+              required
+              minLength="10"
+              maxLength="500"
+            />
+          </div>
+
+          <div className="form-actions">
+            <button type="submit">Submit OD Request</button>
+            <button type="button" onClick={() => setShowODForm(false)}>Cancel</button>
+          </div>
+        </form>
+      )}
+
+      {/* Modal for event details */}
+      {showDetailsModal && (
+        <div className="modal-overlay" onClick={() => setShowDetailsModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="close-button" onClick={() => setShowDetailsModal(false)}>×</button>
+            <h2>{event.name}</h2>
+            {event.imageUrl && <img src={event.imageUrl} alt={event.name} className="modal-event-image" />}
+            <p><strong>Prize:</strong> {event.prize}</p>
+            <p><strong>Entry Fee:</strong> ₹{event.entryFee}</p>
+            <p><strong>Type:</strong> {event.entryType}</p>
+            <p><strong>Details:</strong> {event.details}</p> {/* Full event details */}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
-
 export default EventCard;

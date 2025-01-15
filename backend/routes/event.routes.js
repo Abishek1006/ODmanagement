@@ -23,13 +23,14 @@ router.get('/', protect, getEvents);
 router.post('/', protect, restrictToLeaderOrAdmin, createEvent);
 
 // Get, update, and delete specific events
+router.get('/my-created-events', protect, getMyCreatedEvents);
 router.get('/:id', protect, getEventById);
 router.put('/:id', protect, restrictToLeaderOrAdmin, updateEvent);
 router.delete('/:id', protect, restrictToLeaderOrAdmin, deleteEvent);
 
 // Register for an event (open to students)
 router.post('/:id/register', protect, registerForEvent);
-router.get('/my-created-events', protect, getMyCreatedEvents);
+
 module.exports = router;
 
 

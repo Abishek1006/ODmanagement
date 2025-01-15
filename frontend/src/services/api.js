@@ -100,3 +100,10 @@ api.getStudentsWithOD = getStudentsWithOD;
 api.getUserRoles = getUserRoles;
 api.getUserDetails = getUserDetails;
 export default api;
+
+// Add this method to your existing api service
+const getODHistory = () => {
+  return api.get('/od/history');
+};
+
+api.getODHistory = getODHistory;

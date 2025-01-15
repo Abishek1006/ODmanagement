@@ -21,16 +21,20 @@ const EventDetails = () => {
 
   if (!event) return <p>Loading event details...</p>;
 
+  const handleRegister = () => {
+    window.open(event.formLink, '_blank');
+  };
+
   return (
     <div className="event-details-page">
-      {event.imageUrl && <img src={event.imageUrl} alt={event.name} className="event-image-large" />}
+      {event.imageUrl && <img src={event.imageUrl} alt={event.name} />}
       <h1>{event.name}</h1>
       <p>Prize: {event.prize}</p>
       <p>Entry Fee: ₹{event.entryFee}</p>
       <p>Type: {event.entryType}</p>
-      <p>Details: {event.details}</p> {/* Display full event details */}
+      <p>Details: {event.details}</p>
+      <button onClick={handleRegister}>Register Now</button>
     </div>
   );
 };
-
 export default EventDetails;

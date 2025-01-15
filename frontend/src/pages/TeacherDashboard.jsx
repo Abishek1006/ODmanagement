@@ -90,6 +90,7 @@ const TeacherDashboard = () => {
               <Route path="od-approval" element={<ODApprovalSection />} />
               <Route path="courses" element={<CourseManagement />} />
               <Route path="courses/:courseId/details" element={<CourseDetailsView />} />
+              {/* it is using course.controller to fetch students with od not the api in od.controller(we should remove the one from od.controller) */}
               <Route path="events" element={<MyEvents />} />
             </Routes>
         </main>

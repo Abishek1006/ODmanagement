@@ -8,7 +8,6 @@ const canEditAnyEvent = (user) => {
          ['hod', 'ac'].includes(user.primaryRole) || 
          user.secondaryRoles.some(role => ['hod', 'ac'].includes(role));
 };
-
 // Helper function to check if user can create events
 const canCreateEvent = (user) => {
   return user.isAdmin || 
@@ -25,17 +24,17 @@ const validateEventInput = (eventData) => {
     errors.push('Event name is required');
   }
 
-  if (!eventData.prize || eventData.prize.trim() === '') {
-    errors.push('Prize is required');
-  }
-
-  // if (typeof eventData.entryFee !== 'number' || eventData.entryFee < 0) {
-  //   errors.push('Entry fee must be a non-negative number');
+  // if (!eventData.prize || eventData.prize.trim() === '') {
+  //   errors.push('Prize is required');
   // }
 
-  if (!['individual', 'team'].includes(eventData.entryType)) {
-    errors.push('Invalid entry type. Must be either "individual" or "team"');
+  if (!eventData.formLink || eventData.formLink.trim() === '') {
+    errors.push('Registration form link is required');
   }
+
+  // if (!['individual', 'team'].includes(eventData.entryType)) {
+  //   errors.push('Invalid entry type. Must be either "individual" or "team"');
+  // }
 
   return errors;
 };
@@ -60,7 +59,7 @@ exports.createEvent = async (req, res) => {
       });
     }
 
-    const { name, prize, entryFee, entryType, imageUrl, details } = req.body;
+    const { name, prize, entryFee, entryType, imageUrl, details, formLink } = req.body;
 
     // Create event
     const event = new Event({
@@ -70,6 +69,7 @@ exports.createEvent = async (req, res) => {
       entryType,
       imageUrl: imageUrl || undefined,
       details: details || '',
+      formLink,
       createdBy: req.user._id,
     });
 
@@ -104,11 +104,20 @@ exports.getEvents = async (req, res) => {
 // Get events created by the current user
 exports.getMyCreatedEvents = async (req, res) => {
   try {
-    console.log('User ID:', req.user._id); // Debug user ID
-    const events = await Event.find({ createdBy: req.user._id })
-      .sort({ createdAt: -1 });
-    
-    console.log('Found events:', events); // Debug found events
+    // Validate user ID
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(req.user._id)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
+    }
+
+    // Fetch events created by the user
+    const events = await Event.find({ createdBy: req.user._id }).sort({ createdAt: -1 });
+
+    // Handle no events found
+    if (events.length === 0) {
+        return res.status(200).json({ message: 'No events found', events: [] });
+    }
+
     res.status(200).json(events);
   } catch (error) {
     console.error('Error in getMyCreatedEvents:', error);
@@ -118,6 +127,7 @@ exports.getMyCreatedEvents = async (req, res) => {
     });
   }
 };
+
 
 
 // Get a specific event by ID

@@ -72,6 +72,19 @@ Immediate OD Requests: A button is available for submitting urgent OD requests f
 User and Event Management:
 Admins can manage users (students, teachers, tutors, ACs, HODs, event organizers).
 Admins can oversee event creation, approve or reject events, and manage participant lists.
+9.My Events Section(for Students and Teachers):
+- Available only to users with isLeader role (students or teachers)
+- Lists all events created by the current user
+- Allows creators to manage their events (edit/delete)
+- Provides event management interface for organizers
+// Add this section under Core Features and Modules
+10. OD History Management:
+- Automatic tracking of past OD requests
+- Shows approved and rejected ODs
+- Includes pending ODs whose start date has passed
+- Provides historical record of all OD requests
+- Separate from active OD requests section
+
 Technical Architecture:
 1. Frontend:
 Framework: React (or any frontend framework you choose).

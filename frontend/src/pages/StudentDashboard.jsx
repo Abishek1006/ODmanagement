@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, useNavigate, useLocation , Navigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import EventSection from '../components/EventSection';
 import PersonalDetails from '../components/PersonalDetails';
 import ODSection from '../components/ODsection';
+import ODHistory from '../components/ODHistory';
 import api from '../services/api';
 import '../css/EventCard.css';
 import '../css/EventSection.css';
@@ -13,6 +14,7 @@ import '../css/student.css';
 import EventCreation from '../components/EventCreation';
 import MyEvents from '../components/MyEvents';
 import ExternalODSection from '../components/ExternalODSection';
+
 const StudentDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRoles, setUserRoles] = useState(api.getUserRoles());
@@ -23,7 +25,7 @@ const StudentDashboard = () => {
     const fetchUserDetails = async () => {
       try {
         const response = await api.get('/user-details');
-        api.setUserDetails(response.data); // Set user details first
+        api.setUserDetails(response.data);
         api.setUserRoles(
           response.data.primaryRole,
           response.data.secondaryRoles || [],
@@ -36,7 +38,6 @@ const StudentDashboard = () => {
         setIsLoading(false);
       }
     };
-
     fetchUserDetails();
   }, []);
 
@@ -90,6 +91,14 @@ const StudentDashboard = () => {
             </li>
             <li>
               <button
+                className={location.pathname.includes('od-history') ? 'active' : ''}
+                onClick={() => handleSectionChange('od-history')}
+              >
+                OD History
+              </button>
+            </li>
+            <li>
+              <button
                 className={location.pathname.includes('external-od') ? 'active' : ''}
                 onClick={() => handleSectionChange('external-od')}
               >
@@ -115,6 +124,7 @@ const StudentDashboard = () => {
             <Route path="my-events" element={<MyEvents />} />
             <Route path="personal-details" element={<PersonalDetails />} />
             <Route path="od-section" element={<ODSection />} />
+            <Route path="od-history" element={<ODHistory />} />
             <Route path="external-od" element={<ExternalODSection />} />
             <Route path="create-event" element={<EventCreation />} />
           </Routes>
@@ -123,6 +133,5 @@ const StudentDashboard = () => {
     </div>
   );
 };
-
 
 export default StudentDashboard;

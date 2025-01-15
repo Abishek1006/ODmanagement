@@ -10,8 +10,7 @@ import image3 from "../assets/image3.png";
 import image4 from "../assets/image4.png";
 import ugcourse from "../assets/ugcourse.png";
 import pgcourse from "../assets/pgcourse.png";
-import "./Login.css";
-
+import "../css/Login.css";
 function Slideshow() {
     const images = [image1, image2, image3, image4];
     const [currentSlide, setCurrentSlide] = useState(0);

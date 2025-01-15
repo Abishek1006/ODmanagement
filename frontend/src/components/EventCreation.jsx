@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import api from '../services/api';
 import '../css/EventCreation.css';  // Add this import
+
 const EventCreation = () => {
   const [eventData, setEventData] = useState({
     name: '',
@@ -8,7 +9,8 @@ const EventCreation = () => {
     entryFee: '',
     entryType: 'individual',
     imageUrl: '',
-    details: ''
+    details: '',
+    formLink: ''
   });
 
   const handleChange = (e) => {
@@ -24,30 +26,25 @@ const EventCreation = () => {
     try {
       const response = await api.post('/events', eventData);
       alert('Event created successfully!');
-      // Reset form
       setEventData({
         name: '',
         prize: '',
         entryFee: '',
         entryType: 'individual',
         imageUrl: '',
-        details: ''
+        details: '',
+        formLink: ''
       });
     } catch (error) {
-      // Handle specific error responses
       if (error.response && error.response.data.errors) {
-        // Display validation errors
         const errorMessages = error.response.data.errors.join('\n');
         alert(`Event creation failed:\n${errorMessages}`);
       } else {
-        // Generic error handling
         console.error('Error creating event:', error);
         alert('Failed to create event. Please try again.');
       }
     }
   };
-  
-  
 
   return (
     <div className="event-creation-container">
@@ -93,6 +90,17 @@ const EventCreation = () => {
             <option value="individual">Individual</option>
             <option value="team">Team</option>
           </select>
+        </div>
+        <div>
+          <label>Registration Form Link</label>
+          <input
+            type="url"
+            name="formLink"
+            value={eventData.formLink}
+            onChange={handleChange}
+            placeholder="Enter Google Form or registration link"
+            required
+          />
         </div>
         <div>
           <label>Image URL (Optional)</label>

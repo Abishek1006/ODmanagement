@@ -1,13 +1,72 @@
 .od-section {
-  padding: 20px;
-  max-width: 800px;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 30px;
 }
 
-.od-section h2 {
-  color: #333;
-  margin-bottom: 20px;
+.od-header {
   text-align: center;
+  margin-bottom: 40px;
+}
+
+.od-header h2 {
+  font-size: 2.5rem;
+  background: linear-gradient(45deg, #2193b0, #6dd5ed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.od-table {
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: linear-gradient(45deg, #2193b0, #6dd5ed);
+  color: white;
+  padding: 15px;
+  text-align: left;
+}
+
+td {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  transition: background-color 0.3s;
+}
+
+tr:hover td {
+  background-color: #f8f9fa;
+}
+
+.status-pending {
+  color: #f39c12;
+  font-weight: 600;
+}
+
+.status-approved {
+  color: #2ecc71;
+  font-weight: 600;
+}
+
+.status-rejected {
+  color: #e74c3c;
+  font-weight: 600;
+}
+
+.status-icon {
+  font-size: 1.2rem;
+  transition: transform 0.3s;
+}
+
+.status-icon:hover {
+  transform: scale(1.2);
 }
 
 .od-form {

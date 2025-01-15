@@ -127,14 +127,47 @@ exports.rejectODRequest = async (req, res) => {
 // controllers/od.controller.js
 exports.getODRequests = async (req, res) => {
   try {
-    const odRequests = await OD.find({ studentId: req.user._id }).populate('tutorId acId hodId');
+    const currentDate = new Date();
+    
+    const odRequests = await OD.find({
+      studentId: req.user._id,
+      status: 'pending',
+      dateFrom: { $gt: currentDate }
+    })
+    .populate('tutorId acId hodId')
+    .sort('-createdAt');
+
     res.json(odRequests);
   } catch (error) {
     console.error('Error fetching OD requests:', error);
     res.status(500).json({ message: 'Error fetching OD requests' });
   }
 };
-exports.createImmediateODRequest = async (req, res) => {
+
+// Add this new controller method
+exports.getODHistory = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    
+    const historyRequests = await OD.find({
+      studentId: req.user._id,
+      $or: [
+        { status: { $in: ['approved', 'rejected'] } },
+        { 
+          status: 'pending',
+          dateFrom: { $lte: currentDate }
+        }
+      ]
+    })
+    .populate('tutorId acId hodId')
+    .sort('-createdAt');
+
+    res.json(historyRequests);
+  } catch (error) {
+    console.error('Error fetching OD history:', error);
+    res.status(500).json({ message: 'Error fetching OD history' });
+  }
+};exports.createImmediateODRequest = async (req, res) => {
   try {
     const { studentId, eventName, dateFrom, dateTo, reason } = req.body;
 
@@ -198,61 +231,61 @@ exports.approveImmediateOD = async (req, res) => {
   }
 };
 exports.getStudentsWithOD = async (req, res) => {
-  try {
-    const { courseId } = req.query;
-    console.log('Fetching students for course:', courseId);
+  // try {
+  //   const { courseId } = req.query;
+  //   console.log('Fetching students for course:', courseId);
 
-    // Get course details
-    const course = await Course.findById(courseId);
-    if (!course) {
-      return res.status(404).json({ message: 'Course not found' });
-    }
+  //   // Get course details
+  //   const course = await Course.findById(courseId);
+  //   if (!course) {
+  //     return res.status(404).json({ message: 'Course not found' });
+  //   }
 
-    // Find students enrolled in this course
-    const students = await User.find({
-      'courses.courseId': courseId,
-      primaryRole: 'student'
-    });
+  //   // Find students enrolled in this course
+  //   const students = await User.find({
+  //     'courses.courseId': courseId,
+  //     primaryRole: 'student'
+  //   });
 
-    console.log('Found students:', students);
+  //   console.log('Found students:', students);
 
-    // Get OD details for each student
-    const studentsWithODDetails = await Promise.all(students.map(async (student) => {
-      const odRequests = await OD.find({
-        studentId: student._id,
-        status: 'approved',
-        dateFrom: { $lte: new Date() },
-        dateTo: { $gte: new Date() }
-      });
+  //   // Get OD details for each student
+  //   const studentsWithODDetails = await Promise.all(students.map(async (student) => {
+  //     const odRequests = await OD.find({
+  //       studentId: student._id,
+  //       status: 'approved',
+  //       dateFrom: { $lte: new Date() },
+  //       dateTo: { $gte: new Date() }
+  //     });
 
-      console.log(`OD requests for student ${student.name}:`, odRequests);
+  //     console.log(`OD requests for student ${student.name}:`, odRequests);
 
-      return {
-        _id: student._id,
-        name: student.name,
-        rollNo: student.rollNo,
-        department: student.department,
-        odRequests: odRequests
-      };
-    }));
+  //     return {
+  //       _id: student._id,
+  //       name: student.name,
+  //       rollNo: student.rollNo,
+  //       department: student.department,
+  //       odRequests: odRequests
+  //     };
+  //   }));
 
-    const response = {
-      courseName: course.courseName,
-      courseId: course.courseId,
-      students: studentsWithODDetails
-    };
+  //   const response = {
+  //     courseName: course.courseName,
+  //     courseId: course.courseId,
+  //     students: studentsWithODDetails
+  //   };
 
-    console.log('Sending response:', response);
-    res.json(response);
+  //   console.log('Sending response:', response);
+  //   res.json(response);
 
-  } catch (error) {
-    console.error('Detailed error in getStudentsWithOD:', error);
-    res.status(500).json({ 
-      message: 'Error fetching students data',
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
-  }
+  // } catch (error) {
+  //   console.error('Detailed error in getStudentsWithOD:', error);
+  //   res.status(500).json({ 
+  //     message: 'Error fetching students data',
+  //     error: error.message,
+  //     stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+  //   });
+  // }
 };
 exports.createExternalODRequest = async (req, res) => {
   try {

@@ -12,17 +12,10 @@ const CourseDetailsView = () => {
   useEffect(() => {
     const fetchStudentsWithOD = async () => {
       try {
-        console.log('Fetching students for courseId:', courseId); // Add diagnostic logging
         const response = await api.getStudentsWithOD(courseId);
-        console.log('Response:', response.data); // Log the response
         setStudentsWithOD(response.data);
         setLoading(false);
       } catch (error) {
-        console.error('Full Error Details:', {
-          error: error.response?.data,
-          status: error.response?.status,
-          message: error.message
-        });
         setError(error.response?.data?.message || 'Failed to load students');
         setLoading(false);
       }
@@ -49,32 +42,25 @@ const CourseDetailsView = () => {
               <th>Name</th>
               <th>Roll Number</th>
               <th>Department</th>
-              <th>Event Details</th>
-              <th>OD Duration</th>
+              <th>Event Name</th>
+              <th>Purpose</th>
+              <th>From Date</th>
+              <th>To Date</th>
             </tr>
           </thead>
           <tbody>
             {studentsWithOD.studentsWithOD.map(student => (
-              <tr key={student._id}>
-                <td>{student.name}</td>
-                <td>{student.rollNo}</td>
-                <td>{student.department}</td>
-                <td>
-                  {student.activeODs.map(od => (
-                    <div key={od._id} className="od-details">
-                      <p>{od.eventName}</p>
-                    </div>
-                  ))}
-                </td>
-                <td>
-                  {student.activeODs.map(od => (
-                    <div key={od._id}>
-                      {new Date(od.dateFrom).toLocaleDateString()} - 
-                      {new Date(od.dateTo).toLocaleDateString()}
-                    </div>
-                  ))}
-                </td>
-              </tr>
+              student.activeODs.map((od, odIndex) => (
+                <tr key={`${student._id}-${odIndex}`}>
+                  <td>{student.name}</td>
+                  <td>{student.rollNo}</td>
+                  <td>{student.department}</td>
+                  <td>{od.eventName}</td>
+                  <td>{od.reason}</td>
+                  <td>{new Date(od.dateFrom).toLocaleDateString()}</td>
+                  <td>{new Date(od.dateTo).toLocaleDateString()}</td>
+                </tr>
+              ))
             ))}
           </tbody>
         </table>

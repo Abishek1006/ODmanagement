@@ -20,10 +20,24 @@ const odSchema = new mongoose.Schema({
   proof: { type: String, default: false },
   immediateApprover: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   immediateApprovalDate: { type: Date },
+  expiryDate: { type: Date },
   studentDetails: {
     name: { type: String },
     rollNo: { type: String },
     department: { type: String }
   }
 }, { timestamps: true });
+
+// Add pre-save middleware to set expiry date
+odSchema.pre('save', function(next) {
+  if (this.dateTo) {
+    // Set expiry date to 30 days after dateTo
+    this.expiryDate = new Date(this.dateTo.getTime() + (30 * 24 * 60 * 60 * 1000));
+  }
+  next();
+});
+
+// Add TTL index on expiryDate
+odSchema.index({ expiryDate: 1 }, { expireAfterSeconds: 0 });
+
 module.exports = mongoose.model('OD', odSchema);

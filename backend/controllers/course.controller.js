@@ -49,25 +49,21 @@ exports.getTeacherCourses = async (req, res) => {
     });
   }
 };
-// controllers/course.controller.js
 exports.getStudentsWithOD = async (req, res) => {
   try {
     const { courseId } = req.params;
     const teacherId = req.user._id;
 
-    // Verify teacher teaches this course
     const course = await Course.findById(courseId);
     if (!course || !course.teachers.includes(teacherId)) {
       return res.status(403).json({ message: 'Not authorized to view this course' });
     }
 
-    // Get all enrollments for this course-teacher combination
     const enrollments = await CourseEnrollment.find({
       courseId,
       teacherId
     }).populate('studentId', 'name rollNo department');
 
-    // Get OD details for enrolled students
     const studentsWithODDetails = await Promise.all(
       enrollments.map(async (enrollment) => {
         const activeODs = await OD.find({
@@ -75,7 +71,7 @@ exports.getStudentsWithOD = async (req, res) => {
           status: 'approved',
           dateFrom: { $lte: new Date() },
           dateTo: { $gte: new Date() }
-        });
+        }).select('eventName dateFrom dateTo reason');
 
         return {
           _id: enrollment.studentId._id,
@@ -83,7 +79,12 @@ exports.getStudentsWithOD = async (req, res) => {
           rollNo: enrollment.studentId.rollNo,
           department: enrollment.studentId.department,
           hasActiveOD: activeODs.length > 0,
-          activeODs: activeODs
+          activeODs: activeODs.map(od => ({
+            eventName: od.eventName,
+            dateFrom: od.dateFrom,
+            dateTo: od.dateTo,
+            reason: od.reason
+          }))
         };
       })
     );
@@ -100,7 +101,6 @@ exports.getStudentsWithOD = async (req, res) => {
     res.status(500).json({ message: 'Error fetching students data' });
   }
 };
-
 exports.getCourseById = async (req, res) => {
   try {
     const course = await Course.findOne({ courseId: req.params.courseId })

@@ -2,7 +2,7 @@
 import React from 'react'
 import snrlogo from '../assets/snrlogo.png'
 import sreclogo from '../assets/sreclogo.png'
-import "./Navbar.css"
+import "../css/Navbar.css"
 function Navbar() {
   return (
     <>
