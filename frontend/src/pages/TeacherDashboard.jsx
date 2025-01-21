@@ -6,6 +6,7 @@ import CourseDetailsView from '../components/CourseDetailsView';
 import TeacherPersonalDetails from '../components/TeacherPersonalDetails';
 import ODApprovalSection from '../components/ODApprovalSection';
 import CourseManagement from '../components/CourseManagement';
+import EventCreation from '../components/EventCreation';
 import MyEvents from '../components/MyEvents'; // Reuse existing events component
 import '../css/teacher.css'; // Create a separate CSS file for teacher dashboard
 
@@ -81,6 +82,14 @@ const TeacherDashboard = () => {
                 My Events
               </button>
             </li>
+            <li>
+  <button
+    className={location.pathname === '/teacher/create-event' ? 'active' : ''}
+    onClick={() => handleSectionChange('create-event')}
+  >
+    Create Event
+  </button>
+</li>
           </ul>
         </nav>
         <main className="main-content">
@@ -92,6 +101,7 @@ const TeacherDashboard = () => {
               <Route path="courses/:courseId/details" element={<CourseDetailsView />} />
               {/* it is using course.controller to fetch students with od not the api in od.controller(we should remove the one from od.controller) */}
               <Route path="events" element={<MyEvents />} />
+              <Route path="create-event" element={<EventCreation />} />
             </Routes>
         </main>
       </div>

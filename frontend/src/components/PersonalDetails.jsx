@@ -69,41 +69,55 @@ const PersonalDetails = () => {
       const response = await api.get(`/courses/search/${courseInput}`);
       setSelectedCourse(response.data);
       setAvailableTeachers(response.data.teachers);
+      setError(null);
     } catch (error) {
       setError('Course not found');
+      setSelectedCourse(null);
+      setAvailableTeachers([]);
     }
   };
   
-  const handleAddCourse = async () => {
-    try {
-      if (!currentSemester || !currentAcademicYear) {
-        setError('Please enter semester and academic year');
-        return;
-      }
-      
-      await api.enrollInCourse({
-        courseId: selectedCourse.courseId,
-        teacherStaffId: selectedTeacher,
-        semester: currentSemester,
-        academicYear: currentAcademicYear
-      });
-      await fetchEnrolledCourses();
-      resetForm();
-    } catch (error) {
-      console.error('Error adding course:', error);
-      setError('Failed to add course');
+  
+const handleAddCourse = async () => {
+  try {
+    if (!currentSemester || !currentAcademicYear) {
+      setError('Please enter semester and academic year');
+      return;
     }
-  };
 
-  const handleDeleteCourse = async (courseId) => {
-    try {
-      await api.deleteCourseEnrollment(courseId);
-      await fetchEnrolledCourses();
-    } catch (error) {
-      console.error('Error deleting course:', error);
-      setError('Failed to delete course');
-    }
-  };
+    const confirmed = window.confirm('Are you sure you want to add this course?');
+    if (!confirmed) return;
+    
+    await api.enrollInCourse({
+      courseId: selectedCourse.courseId,
+      teacherStaffId: selectedTeacher,
+      semester: currentSemester,
+      academicYear: currentAcademicYear
+    });
+
+    // Refresh only enrolled courses
+    await fetchEnrolledCourses();
+    resetForm();
+    setError(null);
+    alert('Course added successfully!');
+  } catch (error) {
+    setError('Failed to add course');
+  }
+};
+const handleDeleteCourse = async (courseId) => {
+  try {
+    const confirmed = window.confirm('Are you sure you want to delete this course? This action cannot be undone.');
+    if (!confirmed) return;
+
+    await api.deleteCourseEnrollment(courseId);
+    // Refresh only enrolled courses
+    await fetchEnrolledCourses();
+    setError(null);
+    alert('Course deleted successfully!');
+  } catch (error) {
+    setError('Failed to delete course');
+  }
+};
 
   const resetForm = () => {
     setCourseInput('');
@@ -113,18 +127,20 @@ const PersonalDetails = () => {
 
   const handleMentorChange = async () => {
     try {
-      // Validate that at least one mentor is selected
       if (!selectedMentors.tutorId && !selectedMentors.acId && !selectedMentors.hodId) {
         setError('Please select at least one mentor');
         return;
       }
-
+  
+      const confirmed = window.confirm('Are you sure you want to update your mentors?');
+      if (!confirmed) return;
+  
       await api.put('/user-details/update-mentors', selectedMentors);
-      await fetchUserDetails(); // This will refresh the user details with populated mentor information
+      await fetchUserDetails(); // Only refresh user details
       setIsEditing(false);
       setError(null);
+      alert('Mentors updated successfully!');
     } catch (error) {
-      console.error('Error updating mentors:', error);
       setError('Failed to update mentors');
     }
   };

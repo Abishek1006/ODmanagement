@@ -1,7 +1,6 @@
 // controllers/event.controller.js
 const OD = require('../models/od.model');
 const User = require('../models/user.model');
-
 const Course = require('../models/course.model');
 // Create an OD request
 exports.createODRequest = async (req, res) => {
@@ -72,16 +71,6 @@ exports.approveODRequest = async (req, res) => {
     }
 
     await odRequest.save();
-
-    // Create notification for the student
-    await createNotification(
-      odRequest.studentId,
-      `Your OD request for ${odRequest.eventName} has been approved by ${userRole.toUpperCase()}`,
-      'OD_STATUS',
-      odRequest._id,
-      'OD'
-    );
-
     res.status(200).json({ message: 'OD request updated successfully.', odRequest });
   } catch (error) {
     console.error('Error approving OD request:', error);
@@ -106,15 +95,6 @@ exports.rejectODRequest = async (req, res) => {
     odRequest.status = 'rejected';
 
     await odRequest.save();
-
-    // Create notification for the student
-    await createNotification(
-      odRequest.studentId,
-      `Your OD request for ${odRequest.eventName} has been rejected by ${req.user.role}`,
-      'OD_STATUS',
-      odRequest._id,
-      'OD'
-    );
 
     res.status(200).json({ message: 'OD request rejected successfully.', odRequest });
   } catch (error) {
@@ -181,14 +161,6 @@ exports.getODHistory = async (req, res) => {
       isImmediate: true
     });
 
-    // Notify HOD about immediate OD request
-    await createNotification(
-      req.user.hodId,
-      `Immediate OD request from ${req.user.name} for ${eventName}`,
-      'OD_STATUS',
-      odRequest._id,
-      'OD'
-    );
 
     res.status(201).json({ message: 'Immediate OD request created successfully', odRequest });
   } catch (error) {
@@ -215,14 +187,7 @@ exports.approveImmediateOD = async (req, res) => {
     od.immediateApprovalDate = new Date();
     await od.save();
 
-    // Notify student about approval
-    await createNotification(
-      od.studentId,
-      `Your immediate OD request for ${od.eventName} has been approved`,
-      'OD_STATUS',
-      od._id,
-      'OD'
-    );
+
 
     res.status(200).json({ message: 'Immediate OD request approved successfully', od });
   } catch (error) {
@@ -374,14 +339,6 @@ exports.teacherODApproval = async (req, res) => {
 
     await odRequest.save();
 
-    // Create notification for student
-    await createNotification(
-      odRequest.studentId,
-      `Your OD request for ${odRequest.eventName} has been ${status}`,
-      'OD_STATUS',
-      odRequest._id,
-      'OD'
-    );
 
     res.status(200).json(odRequest);
   } catch (error) {

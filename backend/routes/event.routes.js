@@ -10,7 +10,7 @@ const {
     registerForEvent,
     getMyCreatedEvents
 } = require('../controllers/event.controller');
-const { protect, restrictToLeaderOrAdmin } = require('../middleware/auth.middleware');
+const { protect } = require('../middleware/auth.middleware');
 const router = express.Router();
 
 // Route to get all events registered by the student
@@ -19,14 +19,14 @@ router.get('/my-registrations', protect, getRegisteredEvents);
 // Get all events
 router.get('/', protect, getEvents);
 
-// Create a new event (only leaders or admins)
-router.post('/', protect, restrictToLeaderOrAdmin, createEvent);
+// Create a new event (open to all authenticated users)
+router.post('/', protect, createEvent);
 
 // Get, update, and delete specific events
 router.get('/my-created-events', protect, getMyCreatedEvents);
 router.get('/:id', protect, getEventById);
-router.put('/:id', protect, restrictToLeaderOrAdmin, updateEvent);
-router.delete('/:id', protect, restrictToLeaderOrAdmin, deleteEvent);
+router.put('/:id', protect, updateEvent);
+router.delete('/:id', protect, deleteEvent);
 
 // Register for an event (open to students)
 router.post('/:id/register', protect, registerForEvent);

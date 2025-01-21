@@ -54,20 +54,30 @@ const TeacherPersonalDetails = () => {
     try {
       const courseId = window.prompt('Enter Course ID (e.g., CS102):');
       if (courseId) {
-        await api.post('/user-details/teaching-courses/add', { courseId });
-        fetchTeachingCourses();
+        const confirmed = window.confirm(`Are you sure you want to add course ${courseId}?`);
+        if (confirmed) {
+          await api.post('/user-details/teaching-courses/add', { courseId });
+          fetchTeachingCourses();
+          alert('Course added successfully!');
+        }
       }
     } catch (error) {
       console.error('Error adding course:', error);
+      alert('Failed to add course. Please try again.');
     }
   };
   
   const handleRemoveCourse = async (courseId) => {
     try {
-      await api.delete(`/user-details/teaching-courses/${courseId}`);
-      fetchTeachingCourses(); // Refresh the list
+      const confirmed = window.confirm('Are you sure you want to remove this course? This action cannot be undone.');
+      if (confirmed) {
+        await api.delete(`/user-details/teaching-courses/${courseId}`);
+        fetchTeachingCourses();
+        alert('Course removed successfully!');
+      }
     } catch (error) {
       console.error('Error removing course:', error);
+      alert('Failed to remove course. Please try again.');
     }
   };
   

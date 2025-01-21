@@ -52,3 +52,15 @@ exports.restrictToAdmin = (req, res, next) => {
   }
   return res.status(403).json({ message: 'Access restricted to admins only.' });
 };
+
+exports.canCreateEvents = (req, res, next) => {
+  const isTeacher = req.user.primaryRole === 'teacher' || 
+                   req.user.secondaryRoles?.includes('teacher');
+  const isLeader = req.user.isLeader;
+  const isAdmin = req.user.isAdmin;
+
+  if (isTeacher || isLeader || isAdmin) {
+    return next();
+  }
+  return res.status(403).json({ message: 'Access restricted to teachers, leaders, or admins only.' });
+};

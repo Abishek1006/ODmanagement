@@ -1,6 +1,5 @@
 const Event = require('../models/event.model');
 const User = require('../models/user.model');
-const { createNotification } = require('./notification.controller');
 
 // Helper function to check if user can edit any event
 const canEditAnyEvent = (user) => {
@@ -11,9 +10,9 @@ const canEditAnyEvent = (user) => {
 // Helper function to check if user can create events
 const canCreateEvent = (user) => {
   return user.isAdmin || 
-         ['ac', 'hod', 'teacher'].includes(user.primaryRole) || 
+         ['teacher', 'tutor', 'ac', 'hod'].includes(user.primaryRole) || 
          (user.primaryRole === 'student' && user.isLeader) ||
-         user.secondaryRoles.some(role => ['ac', 'hod', 'teacher'].includes(role));
+         user.secondaryRoles.some(role => ['teacher', 'tutor', 'ac', 'hod'].includes(role));
 };
 
 // Validation helper function
@@ -59,7 +58,7 @@ exports.createEvent = async (req, res) => {
       });
     }
 
-    const { name, prize, entryFee, entryType, imageUrl, details, formLink } = req.body;
+    const { name, prize, entryFee, entryType, imageUrl, details, formLink,deadline } = req.body;
 
     // Create event
     const event = new Event({
@@ -70,6 +69,7 @@ exports.createEvent = async (req, res) => {
       imageUrl: imageUrl || undefined,
       details: details || '',
       formLink,
+      deadline,
       createdBy: req.user._id,
     });
 
@@ -88,9 +88,11 @@ exports.createEvent = async (req, res) => {
 // Get all events
 exports.getEvents = async (req, res) => {
   try {
-    const events = await Event.find()
+    const events = await Event.find({
+      deadline: { $gt: new Date() } // Only get events with future deadlines
+    })
       .populate('createdBy', 'name email')
-      .sort({ createdAt: -1 });
+      .sort({ deadline: 1 });
     res.status(200).json(events);
   } catch (error) {
     console.error('Error fetching events:', error);
@@ -100,6 +102,7 @@ exports.getEvents = async (req, res) => {
     });
   }
 };
+
 
 // Get events created by the current user
 exports.getMyCreatedEvents = async (req, res) => {
@@ -186,25 +189,17 @@ exports.updateEvent = async (req, res) => {
     }
 
     // Update event fields
-    const { name, prize, entryFee, entryType, imageUrl, details } = req.body;
+    const { name, prize, entryFee, entryType, imageUrl, details, formLink, deadline } = req.body;
     event.name = name || event.name;
     event.prize = prize || event.prize;
     event.entryFee = entryFee || event.entryFee;
     event.entryType = entryType || event.entryType;
     event.imageUrl = imageUrl || event.imageUrl;
     event.details = details || event.details;
+    event.formLink = formLink || event.formLink;
+    event.deadline = deadline || event.deadline;
 
     const updatedEvent = await event.save();
-
-    // Create a notification for event update
-    await createNotification(
-      req.user._id, 
-      `Event updated: ${updatedEvent.name}`, 
-      'event_update', 
-      updatedEvent._id, 
-      'Event'
-    );
-
     res.status(200).json(updatedEvent);
   } catch (error) {
     console.error('Event update error:', error);
@@ -214,7 +209,6 @@ exports.updateEvent = async (req, res) => {
     });
   }
 };
-
 // Delete an event
 exports.deleteEvent = async (req, res) => {
   try {
@@ -237,15 +231,6 @@ exports.deleteEvent = async (req, res) => {
 
     // Delete the event
     await Event.findByIdAndDelete(req.params.id);
-
-    // Create a notification for event deletion
-    await createNotification(
-      req.user._id, 
-      `Event deleted: ${event.name}`, 
-      'event_deletion', 
-      event._id, 
-      'Event'
-    );
 
     res.status(200).json({ 
       message: 'Event deleted successfully',
@@ -291,15 +276,6 @@ exports.registerForEvent = async (req, res) => {
     // Add user to registrations
     event.registrations.push(req.user._id);
     await event.save();
-
-    // Create a notification for event registration
-    await createNotification(
-      req.user._id, 
-      `Registered for event: ${event.name}`, 
-      'event_registration', 
-      event._id, 
-      'Event'
-    );
 
     res.status(200).json({ 
       message: 'Registration successful', 

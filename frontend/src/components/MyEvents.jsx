@@ -30,6 +30,11 @@ const MyEvents = () => {
 
   const handleUpdate = async (e) => {
     e.preventDefault();
+    
+    // Add confirmation dialog
+    const confirmed = window.confirm('Are you sure you want to update this event?');
+    if (!confirmed) return;
+
     try {
       const response = await api.put(`/events/${editingEvent._id}`, editingEvent);
       setEvents((prevEvents) =>
@@ -38,15 +43,23 @@ const MyEvents = () => {
         )
       );
       setEditingEvent(null);
-      alert('Event updated successfully.');
+      alert('Event updated successfully!');
     } catch (err) {
       console.error('Error updating event:', err);
-      alert('Failed to update the event. Please try again.');
+      if (err.response?.data?.message) {
+        alert(`Update failed: ${err.response.data.message}`);
+      } else {
+        alert('Failed to update the event. Please try again.');
+      }
     }
   };
+  
 
   const handleDelete = async (eventId) => {
-    const confirmDelete = window.confirm('Are you sure you want to delete this event?');
+    const confirmDelete = window.confirm(
+      'Are you sure you want to delete this event? This action cannot be undone.'
+    );
+    
     if (confirmDelete) {
       try {
         await api.delete(`/events/${eventId}`);
@@ -58,7 +71,6 @@ const MyEvents = () => {
       }
     }
   };
-
   const renderEventList = () => {
     if (loading) return <p>Loading your events...</p>;
     if (error) return <p className="error-message">{error}</p>;
@@ -89,7 +101,6 @@ const MyEvents = () => {
               type="text"
               value={editingEvent.name}
               onChange={(e) => setEditingEvent({ ...editingEvent, name: e.target.value })}
-              placeholder="Enter event name"
               required
             />
           </label>
@@ -99,7 +110,6 @@ const MyEvents = () => {
               type="text"
               value={editingEvent.prize}
               onChange={(e) => setEditingEvent({ ...editingEvent, prize: e.target.value })}
-              placeholder="Enter prize"
               required
             />
           </label>
@@ -109,8 +119,50 @@ const MyEvents = () => {
               type="number"
               value={editingEvent.entryFee}
               onChange={(e) => setEditingEvent({ ...editingEvent, entryFee: e.target.value })}
-              placeholder="Enter entry fee"
               required
+            />
+          </label>
+          <label>
+            Entry Type:
+            <select
+              value={editingEvent.entryType}
+              onChange={(e) => setEditingEvent({ ...editingEvent, entryType: e.target.value })}
+            >
+              <option value="individual">Individual</option>
+              <option value="team">Team</option>
+            </select>
+          </label>
+          <label>
+            Registration Form Link:
+            <input
+              type="url"
+              value={editingEvent.formLink}
+              onChange={(e) => setEditingEvent({ ...editingEvent, formLink: e.target.value })}
+              required
+            />
+          </label>
+          <label>
+            Registration Deadline:
+            <input
+              type="date"
+              value={editingEvent.deadline}
+              onChange={(e) => setEditingEvent({ ...editingEvent, deadline: e.target.value })}
+              required
+            />
+          </label>
+          <label>
+            Image URL:
+            <input
+              type="text"
+              value={editingEvent.imageUrl}
+              onChange={(e) => setEditingEvent({ ...editingEvent, imageUrl: e.target.value })}
+            />
+          </label>
+          <label>
+            Event Details:
+            <textarea
+              value={editingEvent.details}
+              onChange={(e) => setEditingEvent({ ...editingEvent, details: e.target.value })}
             />
           </label>
           <div className="form-actions">
@@ -121,7 +173,6 @@ const MyEvents = () => {
       </div>
     );
   };
-
   return (
     <div className="my-events-container">
       <h2>My Created Events</h2>

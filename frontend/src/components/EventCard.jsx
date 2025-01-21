@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 import { requestOD } from '../services/eventservice';
-const EventCard = ({ event }) => {
+const EventCard = ({ event, showDelete = false }) => {
   const navigate = useNavigate();
   const [showODForm, setShowODForm] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
@@ -91,7 +91,8 @@ const EventCard = ({ event }) => {
       <p>Type: {event.entryType}</p>
       <button onClick={handleRegister}>Register Now</button>
 
-      {(user.isAdmin || user.isLeader) && (
+      {/* Only show delete button if showDelete prop is true */}
+      {showDelete && (user.isAdmin || user.isLeader) && (
         <button
           className="delete-button"
           onClick={handleDelete}
@@ -185,5 +186,5 @@ const EventCard = ({ event }) => {
       )}
     </div>
   );
-};
-export default EventCard;
+
+};export default EventCard;

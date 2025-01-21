@@ -1,5 +1,4 @@
 import '../css/EventSection.css';
-// src/components/EventSection.jsx
 import React, { useEffect, useState } from 'react';
 import { getEvents } from '../services/eventservice';
 import EventCard from './EventCard';
@@ -13,7 +12,8 @@ const EventSection = () => {
     const fetchEvents = async () => {
       try {
         const data = await getEvents();
-        setEvents(data);
+        console.log('Fetched events:', data); // Debug log
+        setEvents(Array.isArray(data) ? data : []);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching events:', error);
@@ -26,13 +26,18 @@ const EventSection = () => {
 
   if (loading) return <p>Loading events...</p>;
   if (error) return <p>{error}</p>;
+  if (events.length === 0) return <p>No upcoming events found.</p>;
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl">Upcoming Events</h2>
-      <div className="grid">
+    <div className="event-section">
+      <h2>Upcoming Events</h2>
+      <div className="events-grid">
         {events.map((event) => (
-          <EventCard key={event._id} event={event} />
+          <EventCard 
+            key={event._id} 
+            event={event}
+            showDelete={false}
+          />
         ))}
       </div>
     </div>

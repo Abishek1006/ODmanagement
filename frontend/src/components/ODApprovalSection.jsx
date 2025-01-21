@@ -1,49 +1,57 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import '../css/ODApprovalSection.css';
+  const ODApprovalSection = () => {
+    const [odRequests, setODRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [filter, setFilter] = useState('all');
 
-const ODApprovalSection = () => {
-  const [odRequests, setODRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
-
-  useEffect(() => {
-    const fetchODRequests = async () => {
+    useEffect(() => {
+      const fetchODRequests = async () => {
+        try {
+          const response = await api.get('/od/teacher-requests');
+          setODRequests(response.data);
+          setLoading(false);
+        } catch (error) {
+          console.error('Failed to fetch OD requests:', error);
+          setError('Failed to load OD requests');
+          setLoading(false);
+        }
+      };
+      fetchODRequests();
+    }, []);
+    const handleODApproval = async (odId, status) => {
       try {
-        const response = await api.get('/od/teacher-requests');
-        setODRequests(response.data);
-        setLoading(false);
+        const response = await api.patch(`/od/${odId}/teacher-approval`, { status });
+        // Remove the request from the list if this teacher has approved/rejected it
+        setODRequests(prevRequests => 
+          prevRequests.filter(request => {
+            const teacherId = req.user._id;
+            if (request._id === odId) {
+              // Check if this teacher has already given their approval/rejection
+              if (request.tutorId === teacherId && request.tutorApproval) return false;
+              if (request.acId === teacherId && request.acApproval) return false;
+              if (request.hodId === teacherId && request.hodApproval) return false;
+            }
+            return true;
+          })
+        );
       } catch (error) {
-        console.error('Failed to fetch OD requests:', error);
-        setError('Failed to load OD requests');
-        setLoading(false);
+        console.error('Failed to update OD request:', error);
+        setError('Failed to process OD request');
       }
     };
 
-    fetchODRequests();
-  }, []);
-
-  const handleODApproval = async (odId, status) => {
-    try {
-      const response = await api.patch(`/od/${odId}/teacher-approval`, { status });
-      
-      // Update local state
-      setODRequests(prevRequests => 
-        prevRequests.map(request => 
-          request._id === odId ? response.data : request
-        )
+    // Filter requests to only show those pending this teacher's approval
+    const filteredRequests = odRequests.filter(request => {
+      const teacherId = req.user._id;
+      return (
+        (request.tutorId === teacherId && !request.tutorApproval) ||
+        (request.acId === teacherId && !request.acApproval && request.tutorApproval) ||
+        (request.hodId === teacherId && !request.hodApproval && request.acApproval)
       );
-    } catch (error) {
-      console.error('Failed to update OD request:', error);
-      setError('Failed to process OD request');
-    }
-  };
-
-  const filteredRequests = odRequests.filter(request => {
-    if (filter === 'all') return true;
-    return request.status === filter;
-  });
+    });
 
   if (loading) return <div>Loading OD Requests...</div>;
   if (error) return <div className="error">{error}</div>;

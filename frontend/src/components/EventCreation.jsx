@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import api from '../services/api';
-import '../css/EventCreation.css';  // Add this import
+import '../css/EventCreation.css';
 
 const EventCreation = () => {
   const [eventData, setEventData] = useState({
@@ -10,7 +10,8 @@ const EventCreation = () => {
     entryType: 'individual',
     imageUrl: '',
     details: '',
-    formLink: ''
+    formLink: '',
+    deadline: ''
   });
 
   const handleChange = (e) => {
@@ -23,6 +24,11 @@ const EventCreation = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Add confirmation dialog
+    const confirmed = window.confirm('Are you sure you want to create this event?');
+    if (!confirmed) return;
+
     try {
       const response = await api.post('/events', eventData);
       alert('Event created successfully!');
@@ -33,7 +39,8 @@ const EventCreation = () => {
         entryType: 'individual',
         imageUrl: '',
         details: '',
-        formLink: ''
+        formLink: '',
+        deadline: ''
       });
     } catch (error) {
       if (error.response && error.response.data.errors) {
@@ -44,7 +51,8 @@ const EventCreation = () => {
         alert('Failed to create event. Please try again.');
       }
     }
-  };
+};
+
 
   return (
     <div className="event-creation-container">
@@ -102,6 +110,18 @@ const EventCreation = () => {
             required
           />
         </div>
+      
+        <div>
+  <label>Registration Deadline</label>
+  <input
+    type="date"
+    name="deadline"
+    value={eventData.deadline}
+    onChange={handleChange}
+    required
+  />
+</div>
+
         <div>
           <label>Image URL (Optional)</label>
           <input
