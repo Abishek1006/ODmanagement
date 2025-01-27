@@ -41,7 +41,8 @@ const validateEventInput = (eventData) => {
 // Create an event
 exports.createEvent = async (req, res) => {
   try {
-    // Check user permissions
+    console.log('Creating event with image:', req.body.image ? 'Present' : 'Not present');
+
     if (!canCreateEvent(req.user)) {
       return res.status(403).json({ 
         message: 'You do not have permission to create events',
@@ -49,7 +50,6 @@ exports.createEvent = async (req, res) => {
       });
     }
 
-    // Validate input
     const validationErrors = validateEventInput(req.body);
     if (validationErrors.length > 0) {
       return res.status(400).json({ 
@@ -58,41 +58,68 @@ exports.createEvent = async (req, res) => {
       });
     }
 
-    const { name, prize, entryFee, entryType, imageUrl, details, formLink,deadline } = req.body;
+    const { name, prize, entryFee, entryType, image, details, formLink, deadline } = req.body;
 
-    // Create event
+    // Enhanced image validation
+    if (!image) {
+      return res.status(400).json({
+        message: 'Image is required',
+        errors: ['Event poster is required']
+      });
+    }
+
+    if (!image.startsWith('data:image')) {
+      console.error('Invalid image format received:', image.substring(0, 50) + '...');
+      return res.status(400).json({
+        message: 'Invalid image format',
+        errors: ['Image must be in valid base64 format']
+      });
+    }
+
     const event = new Event({
       name,
       prize,
       entryFee,
       entryType,
-      imageUrl: imageUrl || undefined,
+      image,
       details: details || '',
       formLink,
       deadline,
       createdBy: req.user._id,
     });
 
+    console.log('Event object before save:', {
+      ...event.toObject(),
+      image: event.image ? 'Image present' : 'No image'
+    });
+
     const createdEvent = await event.save();
+    console.log('Event saved successfully:', createdEvent._id);
+
     res.status(201).json(createdEvent);
   } catch (error) {
     console.error('Event creation error:', error);
     res.status(500).json({ 
-      message: 'Error creating event', 
+      message: 'Error creating event',
       error: error.message 
     });
   }
 };
-
-
 // Get all events
 exports.getEvents = async (req, res) => {
   try {
     const events = await Event.find({
-      deadline: { $gt: new Date() } // Only get events with future deadlines
+      deadline: { $gt: new Date() }
     })
       .populate('createdBy', 'name email')
+      .select('+image') // Explicitly include image field
       .sort({ deadline: 1 });
+
+    console.log('Retrieved events:', events.map(e => ({
+      id: e._id,
+      hasImage: !!e.image
+    })));
+
     res.status(200).json(events);
   } catch (error) {
     console.error('Error fetching events:', error);

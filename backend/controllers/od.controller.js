@@ -346,3 +346,54 @@ exports.teacherODApproval = async (req, res) => {
     res.status(500).json({ message: 'Server error during OD approval' });
   }
 };
+
+exports.getRejectedODRequests = async (req, res) => {
+  try {
+    const teacherId = req.user._id;
+    
+    const rejectedRequests = await OD.find({
+      $or: [
+        { tutorId: teacherId, status: 'rejected' },
+        { acId: teacherId, status: 'rejected' },
+        { hodId: teacherId, status: 'rejected' }
+      ]
+    })
+    .populate('studentId', 'name rollNo department')
+    .sort('-createdAt');
+
+    res.status(200).json(rejectedRequests);
+  } catch (error) {
+    console.error('Error fetching rejected OD requests:', error);
+    res.status(500).json({ message: 'Server error during rejected OD request retrieval' });
+  }
+};
+
+exports.reconsiderODRequest = async (req, res) => {
+  try {
+    const { odId } = req.params;
+    const teacherId = req.user._id;
+
+    const odRequest = await OD.findById(odId);
+    if (!odRequest) {
+      return res.status(404).json({ message: 'OD request not found' });
+    }
+
+    // Reset the approval status for this teacher
+    if (odRequest.tutorId.toString() === teacherId.toString()) {
+      odRequest.tutorApproval = false;
+    } else if (odRequest.acId.toString() === teacherId.toString()) {
+      odRequest.acApproval = false;
+    } else if (odRequest.hodId.toString() === teacherId.toString()) {
+      odRequest.hodApproval = false;
+    }
+
+    // Reset overall status to pending
+    odRequest.status = 'pending';
+    await odRequest.save();
+
+    res.status(200).json(odRequest);
+  } catch (error) {
+    console.error('Error reconsidering OD request:', error);
+    res.status(500).json({ message: 'Server error during OD reconsideration' });
+  }
+};

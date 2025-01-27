@@ -6,11 +6,6 @@ import PersonalDetails from '../components/PersonalDetails';
 import ODSection from '../components/ODsection';
 import ODHistory from '../components/ODHistory';
 import api from '../services/api';
-import '../css/EventCard.css';
-import '../css/EventSection.css';
-import '../css/PersonalDetails.css';
-import '../css/ODSection.css';
-import '../css/student.css';
 import EventCreation from '../components/EventCreation';
 import MyEvents from '../components/MyEvents';
 import ExternalODSection from '../components/ExternalODSection';
@@ -18,6 +13,7 @@ import ExternalODSection from '../components/ExternalODSection';
 const StudentDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRoles, setUserRoles] = useState(api.getUserRoles());
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -45,6 +41,7 @@ const StudentDashboard = () => {
 
   const handleSectionChange = (section) => {
     navigate(section);
+    setIsSidebarOpen(false); // Close sidebar on mobile after navigation
   };
 
   if (isLoading) {
@@ -52,22 +49,31 @@ const StudentDashboard = () => {
   }
 
   return (
-    <div className="dashboard">
+    <div className="min-h-screen bg-orange-50 dark:bg-gray-900">
       <Navbar />
-      <div className="dashboard-content">
-        <nav className="sidebar">
-          <ul>
+      <div className="flex">
+        {/* Sidebar */}
+        <nav className={`fixed md:relative z-40 w-64 bg-orange-100 dark:bg-gray-800 p-4 border-r-2 border-orange-300 dark:border-gray-700 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-200 ease-in-out`}>
+          <ul className="space-y-2">
             <li>
-              <button 
-                className={location.pathname === '/student/events' ? 'active' : ''} 
+              <button
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname === '/student/events'
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
                 onClick={() => handleSectionChange('events')}
               >
                 Events
               </button>
             </li>
             <li>
-              <button 
-                className={location.pathname === '/student/my-events' ? 'active' : ''} 
+              <button
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname === '/student/my-events'
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
                 onClick={() => handleSectionChange('my-events')}
               >
                 My Events
@@ -75,7 +81,11 @@ const StudentDashboard = () => {
             </li>
             <li>
               <button
-                className={location.pathname.includes('personal-details') ? 'active' : ''}
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname.includes('personal-details')
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
                 onClick={() => handleSectionChange('personal-details')}
               >
                 Personal Details
@@ -83,7 +93,11 @@ const StudentDashboard = () => {
             </li>
             <li>
               <button
-                className={location.pathname.includes('od-section') ? 'active' : ''}
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname.includes('od-section')
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
                 onClick={() => handleSectionChange('od-section')}
               >
                 OD Section
@@ -91,7 +105,11 @@ const StudentDashboard = () => {
             </li>
             <li>
               <button
-                className={location.pathname.includes('od-history') ? 'active' : ''}
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname.includes('od-history')
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
                 onClick={() => handleSectionChange('od-history')}
               >
                 OD History
@@ -99,7 +117,11 @@ const StudentDashboard = () => {
             </li>
             <li>
               <button
-                className={location.pathname.includes('external-od') ? 'active' : ''}
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname.includes('external-od')
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
                 onClick={() => handleSectionChange('external-od')}
               >
                 External OD
@@ -108,16 +130,27 @@ const StudentDashboard = () => {
             {canCreateEvent && (
               <li>
                 <button
-                  className={location.pathname.includes('create-event') ? 'active' : ''}
+                  className={`w-full text-left p-2 rounded-lg ${
+                    location.pathname.includes('create-event')
+                      ? 'bg-orange-500 text-white dark:bg-orange-600'
+                      : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                  }`}
                   onClick={() => handleSectionChange('create-event')}
                 >
-                  Create Event 
+                  Create Event
                 </button>
               </li>
             )}
           </ul>
         </nav>
-        <main className="main-content">
+        {/* Main Content */}
+        <main className="flex-1 p-4 bg-white dark:bg-gray-800">
+          <button
+            className="md:hidden p-2 bg-orange-500 text-white rounded-lg mb-4"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          >
+            {isSidebarOpen ? 'Close Menu' : 'Open Menu'}
+          </button>
           <Routes>
             <Route path="/" element={<Navigate to="events" replace />} />
             <Route path="events" element={<EventSection />} />

@@ -64,13 +64,25 @@ exports.getStudentsWithOD = async (req, res) => {
       teacherId
     }).populate('studentId', 'name rollNo department');
 
+    // Get today's date and yesterday's date
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
     const studentsWithODDetails = await Promise.all(
       enrollments.map(async (enrollment) => {
-        const activeODs = await OD.find({
+        const todayODs = await OD.find({
           studentId: enrollment.studentId._id,
           status: 'approved',
-          dateFrom: { $lte: new Date() },
-          dateTo: { $gte: new Date() }
+          dateFrom: { $lte: today },
+          dateTo: { $gte: today }
+        }).select('eventName dateFrom dateTo reason');
+
+        const yesterdayODs = await OD.find({
+          studentId: enrollment.studentId._id,
+          status: 'approved',
+          dateFrom: { $lte: yesterday },
+          dateTo: { $gte: yesterday }
         }).select('eventName dateFrom dateTo reason');
 
         return {
@@ -78,13 +90,8 @@ exports.getStudentsWithOD = async (req, res) => {
           name: enrollment.studentId.name,
           rollNo: enrollment.studentId.rollNo,
           department: enrollment.studentId.department,
-          hasActiveOD: activeODs.length > 0,
-          activeODs: activeODs.map(od => ({
-            eventName: od.eventName,
-            dateFrom: od.dateFrom,
-            dateTo: od.dateTo,
-            reason: od.reason
-          }))
+          todayODs,
+          yesterdayODs
         };
       })
     );
@@ -100,8 +107,7 @@ exports.getStudentsWithOD = async (req, res) => {
     console.error('Error:', error);
     res.status(500).json({ message: 'Error fetching students data' });
   }
-};
-exports.getCourseById = async (req, res) => {
+};exports.getCourseById = async (req, res) => {
   try {
     const course = await Course.findOne({ courseId: req.params.courseId })
       .populate({

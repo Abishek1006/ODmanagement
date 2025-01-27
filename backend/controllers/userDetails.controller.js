@@ -22,6 +22,7 @@ const getUserDetails = asyncHandler(async (req, res) => {
   res.json(user);
 });
 
+
 const addCourse = asyncHandler(async (req, res) => {
   const { courseId, teacherStaffId, semester, academicYear } = req.body;
   
@@ -126,34 +127,45 @@ const getAllTeachers = asyncHandler(async (req, res) => {
 });
 
 const updateUserDetails = asyncHandler(async (req, res) => {
-  const userId = req.user._id;
-  const updateData = req.body;
+  try {
+    const userId = req.user._id;
+    const updateData = req.body;
 
-  // Prevent updating certain fields
-  const fieldsToUpdate = {
-    name: updateData.name,
-    email: updateData.email,
-    department: updateData.department,
-    staffId: updateData.staffId
-  };
+    console.log('Update request received');
+    console.log('Image data length:', updateData.profilePicture?.length);
+    console.log('Image data type:', typeof updateData.profilePicture);
 
-  const user = await User.findByIdAndUpdate(
-    userId, 
-    { $set: fieldsToUpdate }, 
-    { new: true, runValidators: true }
-  )
-  .populate('courses.courseId')
-  .populate('tutorId')
-  .populate('acId')
-  .populate('hodId');
+    if (updateData.profilePicture) {
+      if (!updateData.profilePicture.startsWith('data:image')) {
+        console.log('Invalid image format detected');
+        res.status(400);
+        throw new Error('Invalid image format');
+      }
+    }
 
-  if (!user) {
-    res.status(404);
-    throw new Error('User not found');
+    const fieldsToUpdate = {
+      ...updateData,
+      profilePicture: updateData.profilePicture || undefined,
+    };
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $set: fieldsToUpdate },
+      { new: true, runValidators: true }
+    )
+      .populate('courses.courseId')
+      .populate('tutorId')
+      .populate('acId')
+      .populate('hodId');
+
+    console.log('Update successful');
+    res.json(user);
+  } catch (error) {
+    console.log('Update error:', error);
+    res.status(500).json({ message: 'Failed to update user details', error: error.message });
   }
-
-  res.json(user);
 });
+
 
 const addTeachingCourse = asyncHandler(async (req, res) => {
   const { courseId } = req.body;

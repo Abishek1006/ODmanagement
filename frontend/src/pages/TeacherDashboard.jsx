@@ -7,8 +7,8 @@ import TeacherPersonalDetails from '../components/TeacherPersonalDetails';
 import ODApprovalSection from '../components/ODApprovalSection';
 import CourseManagement from '../components/CourseManagement';
 import EventCreation from '../components/EventCreation';
-import MyEvents from '../components/MyEvents'; // Reuse existing events component
-import '../css/teacher.css'; // Create a separate CSS file for teacher dashboard
+import RejectedODSection from '../components/RejectedODSection';
+import MyEvents from '../components/MyEvents';
 
 const TeacherDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -41,26 +41,34 @@ const TeacherDashboard = () => {
   };
 
   if (isLoading) {
-    return <div className="loading">Loading...</div>;
+    return <div className="flex justify-center items-center h-screen bg-orange-50 dark:bg-gray-900">Loading...</div>;
   }
 
   return (
-    <div className="dashboard teacher-dashboard">
+    <div className="flex flex-col min-h-screen bg-orange-50 dark:bg-gray-900">
       <Navbar />
-      <div className="dashboard-content">
-        <nav className="sidebar">
-          <ul>
+      <div className="flex flex-1">
+        <nav className="w-64 bg-orange-100 dark:bg-gray-800 p-4 border-r-2 border-orange-300 dark:border-gray-700">
+          <ul className="space-y-2">
             <li>
-              <button 
-                className={location.pathname === '/teacher/personal-details' ? 'active' : ''} 
+              <button
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname === '/teacher/personal-details'
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
                 onClick={() => handleSectionChange('personal-details')}
               >
                 Personal Details
               </button>
             </li>
             <li>
-              <button 
-                className={location.pathname === '/teacher/od-approval' ? 'active' : ''} 
+              <button
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname === '/teacher/od-approval'
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
                 onClick={() => handleSectionChange('od-approval')}
               >
                 OD Approval
@@ -68,7 +76,11 @@ const TeacherDashboard = () => {
             </li>
             <li>
               <button
-                className={location.pathname === '/teacher/courses' ? 'active' : ''}
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname === '/teacher/courses'
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
                 onClick={() => handleSectionChange('courses')}
               >
                 Courses
@@ -76,36 +88,57 @@ const TeacherDashboard = () => {
             </li>
             <li>
               <button
-                className={location.pathname === '/teacher/events' ? 'active' : ''}
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname === '/teacher/events'
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
                 onClick={() => handleSectionChange('events')}
               >
                 My Events
               </button>
             </li>
             <li>
-  <button
-    className={location.pathname === '/teacher/create-event' ? 'active' : ''}
-    onClick={() => handleSectionChange('create-event')}
-  >
-    Create Event
-  </button>
-</li>
+              <button
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname === '/teacher/create-event'
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
+                onClick={() => handleSectionChange('create-event')}
+              >
+                Create Event
+              </button>
+            </li>
+            <li>
+              <button
+                className={`w-full text-left p-2 rounded-lg ${
+                  location.pathname === '/teacher/rejected-ods'
+                    ? 'bg-orange-500 text-white dark:bg-orange-600'
+                    : 'bg-white text-orange-500 hover:bg-orange-100 dark:bg-gray-700 dark:text-orange-300 dark:hover:bg-gray-600'
+                }`}
+                onClick={() => handleSectionChange('rejected-ods')}
+              >
+                Rejected ODs
+              </button>
+            </li>
           </ul>
         </nav>
-        <main className="main-content">
-            <Routes>
-              <Route path="/" element={<Navigate to="personal-details" replace />} />
-              <Route path="personal-details" element={<TeacherPersonalDetails />} />
-              <Route path="od-approval" element={<ODApprovalSection />} />
-              <Route path="courses" element={<CourseManagement />} />
-              <Route path="courses/:courseId/details" element={<CourseDetailsView />} />
-              {/* it is using course.controller to fetch students with od not the api in od.controller(we should remove the one from od.controller) */}
-              <Route path="events" element={<MyEvents />} />
-              <Route path="create-event" element={<EventCreation />} />
-            </Routes>
+        <main className="flex-1 p-4 bg-white dark:bg-gray-800">
+          <Routes>
+            <Route path="/" element={<Navigate to="personal-details" replace />} />
+            <Route path="personal-details" element={<TeacherPersonalDetails />} />
+            <Route path="od-approval" element={<ODApprovalSection />} />
+            <Route path="courses" element={<CourseManagement />} />
+            <Route path="courses/:courseId/details" element={<CourseDetailsView />} />
+            <Route path="events" element={<MyEvents />} />
+            <Route path="create-event" element={<EventCreation />} />
+            <Route path="rejected-ods" element={<RejectedODSection />} />
+          </Routes>
         </main>
       </div>
     </div>
   );
 };
+
 export default TeacherDashboard;

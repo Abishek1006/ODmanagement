@@ -37,6 +37,7 @@ const userSchema = new mongoose.Schema({
     courseId: { type: mongoose.Schema.Types.ObjectId, ref: 'Course' },
     teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }
   }],
-  isAdmin: { type: Boolean, default: false }
+  isAdmin: { type: Boolean, default: false },
+  profilePicture: { type: String } // Store Base64 encoded image here
 });
 module.exports = mongoose.model('User', userSchema);
