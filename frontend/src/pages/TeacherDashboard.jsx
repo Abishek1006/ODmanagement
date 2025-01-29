@@ -131,7 +131,7 @@ const TeacherDashboard = () => {
             <Route path="od-approval" element={<ODApprovalSection />} />
             <Route path="courses" element={<CourseManagement />} />
             <Route path="courses/:courseId/details" element={<CourseDetailsView />} />
-            <Route path="events" element={<MyEvents />} />
+            <Route path="events" element={<MyEvents userType="teacher" />} />
             <Route path="create-event" element={<EventCreation />} />
             <Route path="rejected-ods" element={<RejectedODSection />} />
           </Routes>

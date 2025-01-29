@@ -41,39 +41,17 @@ const validateEventInput = (eventData) => {
 // Create an event
 exports.createEvent = async (req, res) => {
   try {
-    console.log('Creating event with image:', req.body.image ? 'Present' : 'Not present');
-
     if (!canCreateEvent(req.user)) {
-      return res.status(403).json({ 
-        message: 'You do not have permission to create events',
-        errors: ['Insufficient permissions']
-      });
+      return res.status(403).json({ message: 'Insufficient permissions' });
     }
 
-    const validationErrors = validateEventInput(req.body);
-    if (validationErrors.length > 0) {
-      return res.status(400).json({ 
-        message: 'Validation failed', 
-        errors: validationErrors 
-      });
-    }
+    const { 
+      name, prize, entryFee, entryType, image, details, 
+      formLink, deadline, startDate, endDate, startTime, endTime 
+    } = req.body;
 
-    const { name, prize, entryFee, entryType, image, details, formLink, deadline } = req.body;
-
-    // Enhanced image validation
-    if (!image) {
-      return res.status(400).json({
-        message: 'Image is required',
-        errors: ['Event poster is required']
-      });
-    }
-
-    if (!image.startsWith('data:image')) {
-      console.error('Invalid image format received:', image.substring(0, 50) + '...');
-      return res.status(400).json({
-        message: 'Invalid image format',
-        errors: ['Image must be in valid base64 format']
-      });
+    if (!name || !formLink || !deadline || !startDate || !endDate || !startTime || !endTime) {
+      return res.status(400).json({ message: 'Missing required fields' });
     }
 
     const event = new Event({
@@ -82,56 +60,85 @@ exports.createEvent = async (req, res) => {
       entryFee,
       entryType,
       image,
-      details: details || '',
+      details,
       formLink,
       deadline,
-      createdBy: req.user._id,
-    });
-
-    console.log('Event object before save:', {
-      ...event.toObject(),
-      image: event.image ? 'Image present' : 'No image'
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+      createdBy: req.user._id
     });
 
     const createdEvent = await event.save();
-    console.log('Event saved successfully:', createdEvent._id);
-
     res.status(201).json(createdEvent);
   } catch (error) {
-    console.error('Event creation error:', error);
-    res.status(500).json({ 
-      message: 'Error creating event',
-      error: error.message 
-    });
+    res.status(500).json({ message: 'Error creating event', error: error.message });
   }
 };
-// Get all events
+
 exports.getEvents = async (req, res) => {
   try {
+    const currentDate = new Date();
+    
+    // Validate date
+    if (!(currentDate instanceof Date && !isNaN(currentDate))) {
+      return res.status(400).json({ 
+        message: 'Invalid date format',
+        errors: ['Current date validation failed']
+      });
+    }
+
     const events = await Event.find({
-      deadline: { $gt: new Date() }
+      deadline: { $gt: currentDate }
     })
-      .populate('createdBy', 'name email')
-      .select('+image') // Explicitly include image field
-      .sort({ deadline: 1 });
+      .populate('createdBy', 'name')
+      .sort({ startDate: 1, startTime: 1 });
 
-    console.log('Retrieved events:', events.map(e => ({
-      id: e._id,
-      hasImage: !!e.image
-    })));
+    // Handle no events found
+    if (!events || events.length === 0) {
+      return res.status(200).json({ 
+        message: 'No upcoming events found',
+        events: [] 
+      });
+    }
 
-    res.status(200).json(events);
+    // Log successful retrieval
+    console.log(`Retrieved ${events.length} upcoming events`);
+
+    res.status(200).json({
+      message: 'Events fetched successfully',
+      count: events.length,
+      events: events
+    });
+
   } catch (error) {
-    console.error('Error fetching events:', error);
+    console.error('Error in getEvents:', error);
+    
+    // Handle specific MongoDB errors
+    if (error.name === 'MongoServerError') {
+      return res.status(500).json({
+        message: 'Database error',
+        error: 'Failed to query events database'
+      });
+    }
+
+    // Handle validation errors
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({
+        message: 'Validation error',
+        error: error.message
+      });
+    }
+
+    // Generic error handler
     res.status(500).json({ 
       message: 'Error fetching events', 
-      error: error.message 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
-
-
-// Get events created by the current user
 exports.getMyCreatedEvents = async (req, res) => {
   try {
     // Validate user ID
@@ -158,9 +165,6 @@ exports.getMyCreatedEvents = async (req, res) => {
   }
 };
 
-
-
-// Get a specific event by ID
 exports.getEventById = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id)
@@ -183,7 +187,46 @@ exports.getEventById = async (req, res) => {
   }
 };
 
-// Update an event
+exports.updateEvent = async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id);
+    if (!event) {
+      return res.status(404).json({ message: 'Event not found' });
+    }
+
+    if (event.createdBy.toString() !== req.user._id.toString() && !canEditAnyEvent(req.user)) {
+      return res.status(403).json({ message: 'Insufficient permissions' });
+    }
+
+    const { 
+      name, prize, entryFee, entryType, image, details, 
+      formLink, deadline, startDate, endDate, startTime, endTime 
+    } = req.body;
+
+    const updatedEvent = await Event.findByIdAndUpdate(
+      req.params.id,
+      {
+        name,
+        prize,
+        entryFee,
+        entryType,
+        image,
+        details,
+        formLink,
+        deadline,
+        startDate,
+        endDate,
+        startTime,
+        endTime
+      },
+      { new: true }
+    );
+
+    res.status(200).json(updatedEvent);
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating event', error: error.message });
+  }
+};// Update an event
 exports.updateEvent = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);

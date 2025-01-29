@@ -5,11 +5,30 @@ const Course = require('../models/course.model');
 // Create an OD request
 exports.createODRequest = async (req, res) => {
   try {
-    const { studentId, eventName, dateFrom, dateTo, reason, tutorId, acId, hodId, isExternal, location, eventType } = req.body;
+    console.log('Received OD Request:', req.body);
+    
+    const { 
+      studentId, eventName, dateFrom, dateTo, 
+      startTime, endTime, reason, tutorId, 
+      acId, hodId, isExternal, location, eventType 
+    } = req.body;
 
-    // Ensure we have all required mentor IDs
-    if (!tutorId || !acId || !hodId) {
-      return res.status(400).json({ message: 'Missing mentor details' });
+    // Validate required fields
+    const requiredFields = {
+      studentId, eventName, dateFrom, dateTo, 
+      startTime, endTime, reason, tutorId, acId, hodId
+    };
+
+    const missingFields = Object.entries(requiredFields)
+      .filter(([_, value]) => !value)
+      .map(([key]) => key);
+
+    if (missingFields.length > 0) {
+      console.log('Missing fields:', missingFields);
+      return res.status(400).json({ 
+        message: 'Missing required fields', 
+        fields: missingFields 
+      });
     }
 
     const odRequest = await OD.create({
@@ -17,6 +36,8 @@ exports.createODRequest = async (req, res) => {
       eventName,
       dateFrom,
       dateTo,
+      startTime,
+      endTime,
       reason,
       tutorId,
       acId,
@@ -27,14 +48,19 @@ exports.createODRequest = async (req, res) => {
       eventType
     });
 
-    res.status(201).json({ message: 'OD request created successfully', odRequest });
+    console.log('Created OD Request:', odRequest);
+    res.status(201).json({ 
+      message: 'OD request created successfully', 
+      odRequest 
+    });
   } catch (error) {
-    console.error('Error creating OD request:', error);
-    res.status(400).json({ message: 'Error creating OD request', error });
+    console.error('OD Creation Error:', error);
+    res.status(400).json({ 
+      message: 'Error creating OD request', 
+      error: error.message 
+    });
   }
 };
-
-
 // Approve OD request
 exports.approveODRequest = async (req, res) => {
   try {
@@ -108,15 +134,25 @@ exports.rejectODRequest = async (req, res) => {
 exports.getODRequests = async (req, res) => {
   try {
     const currentDate = new Date();
+    const currentTime = currentDate.toLocaleTimeString('en-US', { hour12: false });
     
     const odRequests = await OD.find({
       studentId: req.user._id,
       status: 'pending',
-      dateFrom: { $gt: currentDate }
+      $or: [
+        {
+          dateFrom: { $gt: currentDate }
+        },
+        {
+          dateFrom: currentDate,
+          startTime: { $gt: currentTime }
+        }
+      ]
     })
     .populate('tutorId acId hodId')
     .sort('-createdAt');
 
+    console.log('Fetched OD Requests:', odRequests);
     res.json(odRequests);
   } catch (error) {
     console.error('Error fetching OD requests:', error);
@@ -128,6 +164,7 @@ exports.getODRequests = async (req, res) => {
 exports.getODHistory = async (req, res) => {
   try {
     const currentDate = new Date();
+    const currentTime = currentDate.toLocaleTimeString('en-US', { hour12: false });
     
     const historyRequests = await OD.find({
       studentId: req.user._id,
@@ -135,7 +172,10 @@ exports.getODHistory = async (req, res) => {
         { status: { $in: ['approved', 'rejected'] } },
         { 
           status: 'pending',
-          dateFrom: { $lte: currentDate }
+          $and: [
+            { dateFrom: { $lte: currentDate } },
+            { startTime: { $lte: currentTime } }
+          ]
         }
       ]
     })

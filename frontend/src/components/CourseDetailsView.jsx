@@ -28,43 +28,42 @@ const CourseDetailsView = () => {
   if (loading) return <div className="flex justify-center items-center h-64">Loading students data...</div>;
   if (error) return <div className="text-red-500 text-center">{error}</div>;
   if (!studentsWithOD) return <div className="text-center">No students with OD found</div>;
-
-  const renderStudentTable = (ods, title) => (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border-2 border-gray-900 dark:border-gray-600">
-      <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{title}</h3>
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="bg-orange-100 dark:bg-gray-700">
-              <th className="p-2 text-left">Name</th>
-              <th className="p-2 text-left">Roll Number</th>
-              <th className="p-2 text-left">Department</th>
-              <th className="p-2 text-left">Event Name</th>
-              <th className="p-2 text-left">Purpose</th>
-              <th className="p-2 text-left">From Date</th>
-              <th className="p-2 text-left">To Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {studentsWithOD.studentsWithOD.map((student) =>
-              (activeTab === 'today' ? student.todayODs : student.yesterdayODs).map((od, odIndex) => (
-                <tr key={`${student._id}-${odIndex}`} className="border-b border-gray-200 dark:border-gray-700">
-                  <td className="p-2">{student.name}</td>
-                  <td className="p-2">{student.rollNo}</td>
-                  <td className="p-2">{student.department}</td>
-                  <td className="p-2">{od.eventName}</td>
-                  <td className="p-2">{od.reason}</td>
-                  <td className="p-2">{new Date(od.dateFrom).toLocaleDateString()}</td>
-                  <td className="p-2">{new Date(od.dateTo).toLocaleDateString()}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+    const renderStudentTable = (ods, title) => (
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border-2 border-gray-900 dark:border-gray-600">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4">{title}</h3>
+        <div className="overflow-x-auto">
+          <table className="w-full table-auto">
+            <thead>
+              <tr className="bg-orange-100 dark:bg-gray-700">
+                <th className="p-2 text-left">Name</th>
+                <th className="p-2 text-left">Roll Number</th>
+                <th className="p-2 text-left">Department</th>
+                <th className="p-2 text-left">Event Name</th>
+                <th className="p-2 text-left">Purpose</th>
+                <th className="p-2 text-left">Duration</th>
+              </tr>
+            </thead>
+            <tbody>
+              {studentsWithOD.studentsWithOD.map((student) =>
+                (activeTab === 'today' ? student.todayODs : student.yesterdayODs).map((od, odIndex) => (
+                  <tr key={`${student._id}-${odIndex}`} className="border-b border-gray-200 dark:border-gray-700">
+                    <td className="p-2">{student.name}</td>
+                    <td className="p-2">{student.rollNo}</td>
+                    <td className="p-2">{student.department}</td>
+                    <td className="p-2">{od.eventName}</td>
+                    <td className="p-2">{od.reason}</td>
+                    <td className="p-2">
+                      <div>From: {new Date(od.dateFrom).toLocaleDateString()} {od.startTime}</div>
+                      <div>To: {new Date(od.dateTo).toLocaleDateString()} {od.endTime}</div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
-  );
-
+    );
   return (
     <div className="p-6">
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">

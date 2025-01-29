@@ -1,23 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
 import { FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa';
+  const ODHistory = () => {
+    const [historyRequests, setHistoryRequests] = useState([]);
 
-const ODHistory = () => {
-  const [historyRequests, setHistoryRequests] = useState([]);
+    useEffect(() => {
+      const fetchODHistory = async () => {
+        try {
+          const response = await api.get('/od/history');
+          const currentDate = new Date();
+          const currentTime = currentDate.toLocaleTimeString('en-US', { hour12: false });
+        
+          const filteredRequests = response.data.filter(od => {
+            const odDate = new Date(od.dateFrom);
+            return (
+              od.status === 'approved' || 
+              od.status === 'rejected' ||
+              (odDate < currentDate && od.startTime <= currentTime)
+            );
+          });
+        
+          setHistoryRequests(filteredRequests);
+        } catch (error) {
+          console.error('Error fetching OD history:', error);
+        }
+      };
+      fetchODHistory();
+    }, []);
 
-  useEffect(() => {
-    const fetchODHistory = async () => {
-      try {
-        const response = await api.get('/od/history');
-        setHistoryRequests(response.data);
-      } catch (error) {
-        console.error('Error fetching OD history:', error);
-      }
-    };
-    fetchODHistory();
-  }, []);
-
-  const getStatusIcon = (approvalStatus, overallStatus) => {
+    const getStatusIcon = (approvalStatus, overallStatus) => {
     if (overallStatus === 'rejected') return <FaTimesCircle className="text-red-500" />;
     if (overallStatus === 'approved' && approvalStatus) return <FaCheckCircle className="text-green-500" />;
     if (approvalStatus === true) return <FaCheckCircle className="text-green-500" />;

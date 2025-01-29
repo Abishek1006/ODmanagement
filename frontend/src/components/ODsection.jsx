@@ -4,14 +4,21 @@ import { FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa';
 
 const ODSection = () => {
   const [odRequests, setOdRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchODRequests = async () => {
       try {
+        setLoading(true);
         const response = await api.get('/od');
+        console.log('OD Requests Response:', response.data);
         setOdRequests(response.data);
       } catch (error) {
         console.error('Error fetching OD requests:', error);
+        setError('Failed to load OD requests');
+      } finally {
+        setLoading(false);
       }
     };
     fetchODRequests();
@@ -24,6 +31,9 @@ const ODSection = () => {
     return <FaClock className="text-yellow-500" />;
   };
 
+  if (loading) return <div>Loading OD requests...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
     <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border-2 border-gray-900 dark:border-gray-600">
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">My OD Requests</h2>
@@ -34,6 +44,8 @@ const ODSection = () => {
               <th className="p-2 text-left">Event Name</th>
               <th className="p-2 text-left">From Date</th>
               <th className="p-2 text-left">To Date</th>
+              <th className="p-2 text-left">Start Time</th>
+              <th className="p-2 text-left">End Time</th>
               <th className="p-2 text-left">Status</th>
               <th className="p-2 text-left">Tutor Approval</th>
               <th className="p-2 text-left">AC Approval</th>
@@ -46,6 +58,8 @@ const ODSection = () => {
                 <td className="p-2">{od.eventName}</td>
                 <td className="p-2">{new Date(od.dateFrom).toLocaleDateString()}</td>
                 <td className="p-2">{new Date(od.dateTo).toLocaleDateString()}</td>
+                <td className="p-2">{od.startTime}</td>
+                <td className="p-2">{od.endTime}</td>
                 <td className="p-2">{od.status}</td>
                 <td className="p-2">{getStatusIcon(od.tutorApproval, od.status)}</td>
                 <td className="p-2">{getStatusIcon(od.acApproval, od.status)}</td>
@@ -58,5 +72,4 @@ const ODSection = () => {
     </div>
   );
 };
-
 export default ODSection;

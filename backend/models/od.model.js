@@ -5,6 +5,8 @@ const odSchema = new mongoose.Schema({
   eventName: { type: String, required: true },
   dateFrom: { type: Date, required: true },
   dateTo: { type: Date, required: true },
+  startTime: { type: String, required: true }, // Add start time
+  endTime: { type: String, required: true }, 
   reason: { type: String, required: true },
   status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'pending' },
   tutorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -17,7 +19,7 @@ const odSchema = new mongoose.Schema({
   isExternal: { type: Boolean, default: false },
   location: { type: String },
   eventType: { type: String },
-  proof: { type: String, default: false },
+  proof: { type: String, default: false },//verification proof- links
   immediateApprover: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   immediateApprovalDate: { type: Date },
   expiryDate: { type: Date },

@@ -12,10 +12,12 @@ export const getEvents = async () => {
 };
 export const requestOD = async (odData) => {
   try {
+    console.log('OD Request Data:', odData);
     const userDetails = api.getUserDetails();
     
     if (!userDetails || !userDetails._id || !userDetails.tutorId || !userDetails.acId || !userDetails.hodId) {
-      throw new Error('User details not complete. Please log in again.');
+      console.log('Missing user details:', userDetails);
+      throw new Error('User details not complete');
     }
 
     const requestData = {
@@ -26,11 +28,17 @@ export const requestOD = async (odData) => {
       hodId: userDetails.hodId
     };
     
+    console.log('Final Request Data:', requestData);
     const endpoint = odData.isExternal ? '/od/external' : '/od';
     const response = await api.post(endpoint, requestData);
+    console.log('OD Request Response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error requesting OD:', error);
+    console.error('Detailed OD Request Error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
     throw error;
   }
 };

@@ -1,20 +1,34 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
-import { FaCheckCircle, FaTimesCircle, FaClock, FaCheck, FaTimes } from 'react-icons/fa';
+import { FaCheckCircle, FaTimesCircle, FaExternalLinkAlt } from 'react-icons/fa';
 
 const ODApprovalSection = () => {
   const [odRequests, setODRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [filter, setFilter] = useState('all');
   const [selectedODs, setSelectedODs] = useState(new Set());
-  const [processingBulk, setProcessingBulk] = useState(false);
+
+  const filterFutureODs = (requests) => {
+    const currentDateTime = new Date();
+    return requests.filter(request => {
+      const odStartDate = new Date(request.dateFrom);
+      if (odStartDate.getDate() === currentDateTime.getDate()) {
+        // For same day, compare time
+        const odTime = request.startTime.split(':');
+        const currentTime = currentDateTime.getHours() * 60 + currentDateTime.getMinutes();
+        const odTimeInMinutes = parseInt(odTime[0]) * 60 + parseInt(odTime[1]);
+        return odTimeInMinutes >= currentTime;
+      }
+      return odStartDate > currentDateTime;
+    });
+  };
 
   useEffect(() => {
     const fetchODRequests = async () => {
       try {
         const response = await api.get('/od/teacher-requests');
-        setODRequests(response.data);
+        const futureODs = filterFutureODs(response.data);
+        setODRequests(futureODs);
         setLoading(false);
       } catch (error) {
         console.error('Failed to fetch OD requests:', error);
@@ -25,16 +39,30 @@ const ODApprovalSection = () => {
     fetchODRequests();
   }, []);
 
+  const handleODApproval = async (odId, status) => {
+    try {
+      await api.patch(`/od/${odId}/teacher-approval`, { status });
+      
+      // Update local state to reflect the change
+      setODRequests(prevRequests =>
+        prevRequests.filter(request => request._id !== odId)
+      );
+    } catch (error) {
+      console.error('Failed to update OD request:', error);
+      setError('Failed to process OD request');
+    }
+  };
+
   const handleSelectAll = (e) => {
     if (e.target.checked) {
-      const allPendingIds = filteredRequests.map((request) => request._id);
-      setSelectedODs(new Set(allPendingIds));
+      const allIds = odRequests.map(request => request._id);
+      setSelectedODs(new Set(allIds));
     } else {
       setSelectedODs(new Set());
     }
   };
 
-  const handleSingleSelect = (odId) => {
+  const handleSelectSingle = (odId) => {
     const newSelected = new Set(selectedODs);
     if (newSelected.has(odId)) {
       newSelected.delete(odId);
@@ -44,158 +72,144 @@ const ODApprovalSection = () => {
     setSelectedODs(newSelected);
   };
 
-  const handleBulkAction = async (status) => {
-    setProcessingBulk(true);
+  const handleBulkApproval = async (status) => {
     try {
-      setODRequests((prevRequests) =>
-        prevRequests.map((request) =>
-          selectedODs.has(request._id) ? { ...request, status: status } : request
-        )
-      );
-
       await Promise.all(
-        Array.from(selectedODs).map((odId) =>
+        Array.from(selectedODs).map(odId =>
           api.patch(`/od/${odId}/teacher-approval`, { status })
         )
       );
 
-      setTimeout(() => {
-        setODRequests((prevRequests) =>
-          prevRequests.filter((request) => !selectedODs.has(request._id))
-        );
-        setSelectedODs(new Set());
-      }, 500);
+      // Update local state
+      setODRequests(prevRequests =>
+        prevRequests.filter(request => !selectedODs.has(request._id))
+      );
+      setSelectedODs(new Set());
     } catch (error) {
       console.error('Failed to process bulk OD requests:', error);
       setError('Failed to process some OD requests');
-      setODRequests((prevRequests) =>
-        prevRequests.map((request) =>
-          selectedODs.has(request._id) ? { ...request, status: 'pending' } : request
-        )
-      );
-    }
-    setProcessingBulk(false);
-  };
-
-  const handleODApproval = async (odId, status) => {
-    try {
-      setODRequests((prevRequests) =>
-        prevRequests.map((request) =>
-          request._id === odId ? { ...request, status: status } : request
-        )
-      );
-
-      await api.patch(`/od/${odId}/teacher-approval`, { status });
-
-      setTimeout(() => {
-        setODRequests((prevRequests) =>
-          prevRequests.filter((request) => request._id !== odId)
-        );
-      }, 500);
-    } catch (error) {
-      console.error('Failed to update OD request:', error);
-      setError('Failed to process OD request');
-      setODRequests((prevRequests) =>
-        prevRequests.map((request) =>
-          request._id === odId ? { ...request, status: 'pending' } : request
-        )
-      );
     }
   };
-
-  const filteredRequests = odRequests.filter((request) => {
-    const userDetails = api.getUserDetails();
-    const teacherId = userDetails._id;
-    return (
-      (request.tutorId === teacherId && !request.tutorApproval) ||
-      (request.acId === teacherId && !request.acApproval && request.tutorApproval) ||
-      (request.hodId === teacherId && !request.hodApproval && request.acApproval)
-    );
-  });
 
   if (loading) return <div className="flex justify-center items-center h-64">Loading OD Requests...</div>;
   if (error) return <div className="text-red-500 text-center">{error}</div>;
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">OD Approval Requests</h2>
-
+    <div className="overflow-x-auto bg-white shadow-md rounded-lg p-4">
       {selectedODs.size > 0 && (
-        <div className="bulk-actions flex space-x-2 mb-4">
+        <div className="mb-4 flex gap-2">
           <button
-            onClick={() => handleBulkAction('approved')}
-            disabled={processingBulk}
-            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-300 flex items-center"
+            onClick={() => handleBulkApproval('approved')}
+            className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
           >
-            <FaCheck className="mr-2" /> Approve Selected ({selectedODs.size})
+            Approve Selected ({selectedODs.size})
           </button>
           <button
-            onClick={() => handleBulkAction('rejected')}
-            disabled={processingBulk}
-            className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-300 flex items-center"
+            onClick={() => handleBulkApproval('rejected')}
+            className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
           >
-            <FaTimes className="mr-2" /> Reject Selected ({selectedODs.size})
+            Reject Selected ({selectedODs.size})
           </button>
         </div>
       )}
 
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="bg-orange-100 dark:bg-gray-700">
-              <th className="p-2">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left">
+              <input
+                type="checkbox"
+                onChange={handleSelectAll}
+                checked={selectedODs.size === odRequests.length && odRequests.length > 0}
+                className="rounded border-gray-300"
+              />
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Student Details
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Event Details
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Duration
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Reason
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Actions
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {odRequests.map((request) => (
+            <tr key={request._id}>
+              <td className="px-6 py-4">
                 <input
                   type="checkbox"
-                  onChange={handleSelectAll}
-                  checked={selectedODs.size === filteredRequests.length && filteredRequests.length > 0}
+                  checked={selectedODs.has(request._id)}
+                  onChange={() => handleSelectSingle(request._id)}
+                  className="rounded border-gray-300"
                 />
-              </th>
-              <th className="p-2 text-left">Student Name</th>
-              <th className="p-2 text-left">Roll No</th>
-              <th className="p-2 text-left">Event Name</th>
-              <th className="p-2 text-left">Date From</th>
-              <th className="p-2 text-left">Date To</th>
-              <th className="p-2 text-left">Status</th>
-              <th className="p-2 text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredRequests.map((request) => (
-              <tr key={request._id} className="border-b border-gray-200 dark:border-gray-700">
-                <td className="p-2">
-                  <input
-                    type="checkbox"
-                    checked={selectedODs.has(request._id)}
-                    onChange={() => handleSingleSelect(request._id)}
-                  />
-                </td>
-                <td className="p-2">{request.studentId.name}</td>
-                <td className="p-2">{request.studentId.rollNo}</td>
-                <td className="p-2">{request.eventName}</td>
-                <td className="p-2">{new Date(request.dateFrom).toLocaleDateString()}</td>
-                <td className="p-2">{new Date(request.dateTo).toLocaleDateString()}</td>
-                <td className="p-2">{request.status}</td>
-                <td className="p-2">
+              </td>
+              <td className="px-6 py-4">
+                <div className="text-sm font-medium text-gray-900">
+                  {request.studentId?.name || 'Not mentioned'}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {request.studentId?.rollNo || 'Not mentioned'}
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <div className="text-sm text-gray-900">
+                  {request.eventName || 'Not mentioned'}
+                </div>
+                {request.isExternal && request.proof && (
+                  <div className="text-sm text-gray-500">
+                    <a
+                      href={request.proof}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-orange-500 hover:text-orange-600 inline-flex items-center"
+                    >
+                      Verification Link <FaExternalLinkAlt className="ml-1" />
+                    </a>
+                  </div>
+                )}
+              </td>
+              <td className="px-6 py-4">
+                <div className="text-sm text-gray-900">
+                  From: {new Date(request.dateFrom).toLocaleDateString()} {request.startTime || 'Not mentioned'}
+                </div>
+                <div className="text-sm text-gray-500">
+                  To: {new Date(request.dateTo).toLocaleDateString()} {request.endTime || 'Not mentioned'}
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <div className="text-sm text-gray-900">
+                  {request.reason || 'Not mentioned'}
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex space-x-2">
                   <button
                     onClick={() => handleODApproval(request._id, 'approved')}
-                    disabled={request.status !== 'pending'}
-                    className="bg-green-500 text-white px-2 py-1 rounded-lg hover:bg-green-600 transition-colors duration-300 flex items-center"
+                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
                   >
                     <FaCheckCircle className="mr-1" /> Approve
                   </button>
                   <button
                     onClick={() => handleODApproval(request._id, 'rejected')}
-                    disabled={request.status !== 'pending'}
-                    className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 transition-colors duration-300 flex items-center"
+                    className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                   >
                     <FaTimesCircle className="mr-1" /> Reject
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 };

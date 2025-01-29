@@ -162,20 +162,6 @@ server.js
   |-->Register.jsx
   |-->PersonalDetails.jsx
   |-->TeacherPersonalDetails.jsx
-
----CSS
-  |--> common.css
-  |--> Dashboard.css
-  |--> EventCard.css
-  |--> EventCreation.css
-  |--> EventSection.css
-  |--> My Events.css
-  |--> ODSection.css
-  |--> PersonalDetails.css(students side)
-  |-->student.css
-  |-->teacher.css
-  |-->CourseManagement.css
-
 ---pages
   |-->StudentDashboard.jsx
   |-->TeacherDashboard.jsx

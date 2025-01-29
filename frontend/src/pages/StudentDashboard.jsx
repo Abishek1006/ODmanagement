@@ -51,7 +51,7 @@ const StudentDashboard = () => {
   return (
     <div className="min-h-screen bg-orange-50 dark:bg-gray-900">
       <Navbar />
-      <div className="flex">
+      <div className="flex ">
         {/* Sidebar */}
         <nav className={`fixed md:relative z-40 w-64 bg-orange-100 dark:bg-gray-800 p-4 border-r-2 border-orange-300 dark:border-gray-700 transform ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-200 ease-in-out`}>
           <ul className="space-y-2">

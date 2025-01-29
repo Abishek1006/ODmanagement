@@ -8,6 +8,8 @@ const ExternalODSection = () => {
     eventName: '',
     dateFrom: '',
     dateTo: '',
+    startTime: '',
+    endTime: '',
     reason: '',
     location: '',
     eventType: '',
@@ -15,29 +17,42 @@ const ExternalODSection = () => {
   });
 
   const [submitted, setSubmitted] = useState(false);
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+    
+      const confirmed = window.confirm(
+        `Please confirm your External OD request details:\n
+        Event: ${formData.eventName}\n
+        Date: ${formData.dateFrom} to ${formData.dateTo}\n
+        Time: ${formData.startTime} to ${formData.endTime}\n
+        Location: ${formData.location}\n
+        Type: ${formData.eventType}\n
+        \nAre you sure you want to submit this request?`
+      );
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      await requestOD({
-        ...formData,
-        isExternal: true,
-      });
-      setSubmitted(true);
-      setFormData({
-        eventName: '',
-        dateFrom: '',
-        dateTo: '',
-        reason: '',
-        location: '',
-        eventType: '',
-        proof: '',
-      });
-    } catch (error) {
-      console.error('Error:', error);
-    }
-  };
-
+      if (confirmed) {
+        try {
+          await requestOD({
+            ...formData,
+            isExternal: true,
+          });
+          setSubmitted(true);
+          setFormData({
+            eventName: '',
+            dateFrom: '',
+            dateTo: '',
+            startTime: '',
+            endTime: '',
+            reason: '',
+            location: '',
+            eventType: '',
+            proof: '',
+          });
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      }
+    };
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -124,6 +139,32 @@ const ExternalODSection = () => {
             required
           />
         </div>
+        <div>
+  <label className="block text-gray-700 dark:text-gray-300 flex items-center">
+    <FaCalendarAlt className="mr-2" /> Start Time
+  </label>
+  <input
+    type="time"
+    name="startTime"
+    value={formData.startTime}
+    onChange={handleChange}
+    className="w-full p-2 border-2 border-gray-900 dark:border-gray-600 rounded-lg"
+    required
+  />
+</div>
+<div>
+  <label className="block text-gray-700 dark:text-gray-300 flex items-center">
+    <FaCalendarAlt className="mr-2" /> End Time
+  </label>
+  <input
+    type="time"
+    name="endTime"
+    value={formData.endTime}
+    onChange={handleChange}
+    className="w-full p-2 border-2 border-gray-900 dark:border-gray-600 rounded-lg"
+    required
+  />
+</div>
         <div>
           <label className="block text-gray-700 dark:text-gray-300 flex items-center">
             <FaInfoCircle className="mr-2" /> Reason/Description
