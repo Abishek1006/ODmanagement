@@ -102,6 +102,25 @@ const reconsiderOD = (odId) => {
   return api.post(`/od/${odId}/reconsider`);
 };
 
+//for admin privialeges
+// Add these to your existing api object
+api.createUser = (userData) => {
+  return api.post('/admin/users', userData);
+};
+
+api.getAllUsers = () => {
+  return api.get('/admin/users');
+};
+
+api.createCourse = (courseData) => {
+  return api.post('/admin/courses', courseData);
+};
+
+api.getAllCourses = () => {
+  return api.get('/admin/courses');
+};
+
+
 // Assign methods to the api object
 api.enrollInCourse = enrollInCourse;
 api.getEnrolledCourses = getEnrolledCourses;

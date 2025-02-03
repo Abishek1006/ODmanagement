@@ -74,15 +74,18 @@ function Login() {
                 response.data.isLeader || false
             );
             
-            if (response.data.primaryRole === 'student') {
+            if (response.data.isAdmin === true) {
+                navigate('/admin-dashboard');
+            } else if (response.data.primaryRole === 'student') {
                 navigate('/student-dashboard');
-            } else {
+            } else if (response.data.primaryRole === 'teacher') {
                 navigate('/teacher-dashboard');
             }
         } catch (error) {
             setError(error.response?.data?.message || 'An error occurred during login');
         }
     };
+    
 
     return (
         <>

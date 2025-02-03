@@ -13,6 +13,8 @@ const notificationRoutes = require('./routes/notification.routes');
 const userDetailsRoutes = require('./routes/userDetails.routes');
 const courseRoutes = require('./routes/course.routes'); // Add this line
 
+const adminRoutes = require('./routes/admin.routes');
+
 
 dotenv.config();
 
@@ -34,7 +36,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/user-details', userDetailsRoutes);
 app.use('/api/courses', courseRoutes); // Add this line
 
-
+// Add this line with your other route declarations
+app.use('/api/admin', adminRoutes);
 // Error Handling Middlewares
 app.use(notFound);
 app.use(errorHandler);
@@ -44,3 +47,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+

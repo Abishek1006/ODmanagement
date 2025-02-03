@@ -96,8 +96,10 @@ exports.loginUser = async (req, res) => {
       primaryRole: user.primaryRole,
       secondaryRoles: user.secondaryRoles,
       isLeader: user.isLeader,
+      isAdmin: user.isAdmin,  // Make sure this is included
       token: generateToken(user._id),
-    });
+  });
+  
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
