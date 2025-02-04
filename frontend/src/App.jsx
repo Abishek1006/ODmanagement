@@ -16,7 +16,7 @@ const ProtectedAdminRoute = () => {
 
 function App() {
   return (
-    <Router>
+    <Router basename={process.env.NODE_ENV === 'production' ? '/e-od-system' : '/'}>
       <Routes>
         {/* Authentication Routes */}
         <Route path="/" element={<Login />} />
