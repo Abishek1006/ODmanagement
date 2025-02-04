@@ -43,24 +43,44 @@ const AdminUserManagement = () => {
   const handleCreateUser = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/admin/users', newUser);
-      fetchUsers();
-      setNewUser({
-        name: '',
-        email: '',
-        password: '',
-        primaryRole: 'student',
-        secondaryRoles: [],
-        department: '',
-        staffId: '',
-        rollNo: '',
-        isLeader: false,
-        tutorId: '',
-        acId: '',
-        hodId: ''
-      });
+      // Format the request body similar to registration
+      const userData = {
+        name: newUser.name,
+        email: newUser.email,
+        password: newUser.password,
+        primaryRole: newUser.primaryRole,
+        secondaryRoles: newUser.secondaryRoles || [],
+        department: newUser.department,
+        staffId: newUser.primaryRole !== 'student' ? newUser.staffId : undefined,
+        rollNo: newUser.primaryRole === 'student' ? newUser.rollNo : undefined,
+        isLeader: newUser.primaryRole === 'student' ? newUser.isLeader : false,
+        tutorId: newUser.tutorId || undefined,
+        acId: newUser.acId || undefined,
+        hodId: newUser.hodId || undefined
+      };
+
+      const response = await api.post('/admin/users', userData);
+      if (response.data) {
+        fetchUsers(); // Refresh the users list
+        // Reset form
+        setNewUser({
+          name: '',
+          email: '',
+          password: '',
+          primaryRole: 'student',
+          secondaryRoles: [],
+          department: '',
+          staffId: '',
+          rollNo: '',
+          isLeader: false,
+          tutorId: '',
+          acId: '',
+          hodId: ''
+        });
+      }
     } catch (error) {
-      console.error('Error creating user:', error);
+      console.error('Error creating user:', error.response?.data?.message || error.message);
+      alert('Failed to create user. Please check the form and try again.');
     }
   };
 
@@ -79,19 +99,19 @@ const AdminUserManagement = () => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       try {
         await api.delete(`/admin/users/${userId}`);
-        fetchUsers(); // Refresh the users list after deletion
+        // After successful deletion, refresh the users list
+        fetchUsers();
       } catch (error) {
-        console.error('Error deleting user:', error);
+        console.error('Error deleting user:', error.response?.data?.message || error.message);
         alert('Failed to delete user. Please try again.');
       }
     }
   };
-  
 
-  const UserForm = ({ user, setUser, onSubmit, formTitle }) => {
+  const UserForm = ({ user, setUser, onSubmit, formTitle, handleInputChange }) => {
     const isStudent = user.primaryRole === 'student';
     const isTeacher = ['teacher', 'tutor', 'ac', 'hod'].includes(user.primaryRole);
-
+  
     return (
       <form onSubmit={onSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4">
         <h3 className="text-xl font-semibold text-gray-700">{formTitle}</h3>
@@ -107,7 +127,7 @@ const AdminUserManagement = () => {
               onChange={(e) => handleInputChange('name', e.target.value)}
             />
           </div>
-
+  
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Email Address</label>
             <input
@@ -118,7 +138,7 @@ const AdminUserManagement = () => {
               onChange={(e) => handleInputChange('email', e.target.value)}
             />
           </div>
-
+  
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Password</label>
             <input
@@ -129,7 +149,7 @@ const AdminUserManagement = () => {
               onChange={(e) => handleInputChange('password', e.target.value)}
             />
           </div>
-
+  
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Primary Role</label>
             <select
@@ -146,7 +166,7 @@ const AdminUserManagement = () => {
               <option value="hod">HOD</option>
             </select>
           </div>
-
+  
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Department</label>
             <input
@@ -157,7 +177,7 @@ const AdminUserManagement = () => {
               onChange={(e) => handleInputChange('department', e.target.value)}
             />
           </div>
-
+  
           {/* Student-specific fields */}
           {isStudent && (
             <div className="space-y-2">
@@ -171,7 +191,7 @@ const AdminUserManagement = () => {
               />
             </div>
           )}
-
+  
           {/* Teacher-specific fields */}
           {isTeacher && (
             <>
@@ -210,7 +230,9 @@ const AdminUserManagement = () => {
         </button>
       </form>
     );
-  };  return (
+  };
+  
+  return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
       
@@ -220,6 +242,7 @@ const AdminUserManagement = () => {
           setUser={setEditingUser} 
           onSubmit={handleUpdateUser}
           formTitle="Update User"
+          handleInputChange={handleInputChange}
         />
       ) : (
         <UserForm 
@@ -227,6 +250,7 @@ const AdminUserManagement = () => {
           setUser={setNewUser} 
           onSubmit={handleCreateUser}
           formTitle="Create New User"
+          handleInputChange={handleInputChange}
         />
       )}
   
