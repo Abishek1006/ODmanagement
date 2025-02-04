@@ -437,3 +437,32 @@ exports.reconsiderODRequest = async (req, res) => {
     res.status(500).json({ message: 'Server error during OD reconsideration' });
   }
 };
+
+exports.getEventStudentsWithOD = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    console.log('Backend received request for event:', eventId);
+    
+    const odRequests = await OD.find({ eventName: eventId })
+      .select('status studentId')
+      .populate('studentId', 'name rollNo department')
+      .lean();
+
+    console.log('Found OD requests:', odRequests);
+    
+    const studentsWithODDetails = odRequests.map(od => ({
+      studentName: od.studentId?.name,
+      rollNo: od.studentId?.rollNo,
+      department: od.studentId?.department,
+      odStatus: od.status
+    }));
+
+    console.log('Sending response:', studentsWithODDetails);
+    res.json(studentsWithODDetails);
+  } catch (error) {
+    console.error('Backend error:', error);
+    res.status(500).json({ message: 'Error fetching students data' });
+  }
+};
+
+

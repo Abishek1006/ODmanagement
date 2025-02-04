@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { getEventStudentsWithOD } from '../services/eventservice';
 import { FaCalendarAlt, FaEdit, FaTrash, FaSave, FaTimes } from 'react-icons/fa';
 
 const MyEvents = () => {
@@ -7,6 +8,9 @@ const MyEvents = () => {
   const [editingEvent, setEditingEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [studentsWithOD, setStudentsWithOD] = useState([]);
+  const [showStudentModal, setShowStudentModal] = useState(false);
 
   useEffect(() => {
     fetchCreatedEvents();
@@ -24,6 +28,66 @@ const MyEvents = () => {
     }
   };
 
+  const viewStudentsWithOD = async (event) => {
+    try {
+      const students = await getEventStudentsWithOD(event._id);
+      setStudentsWithOD(students);
+      setSelectedEvent(event);
+      setShowStudentModal(true);
+    } catch (err) {
+      console.error('Error details:', err);
+    }
+  };
+
+  const renderStudentModal = () => {
+    if (!showStudentModal || !selectedEvent) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-4xl">
+          <h2 className="text-2xl font-bold mb-4">Students with OD for {selectedEvent.name}</h2>
+          {studentsWithOD.length > 0 ? (
+            <table className="w-full border-collapse">
+              <thead>
+                <tr>
+                  <th className="border p-2">Name</th>
+                  <th className="border p-2">Roll No</th>
+                  <th className="border p-2">Department</th>
+                  <th className="border p-2">OD Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {studentsWithOD.map((student, index) => (
+                  <tr key={index}>
+                    <td className="border p-2">{student.studentName}</td>
+                    <td className="border p-2">{student.rollNo}</td>
+                    <td className="border p-2">{student.department}</td>
+                    <td className="border p-2">
+                      {student.odStatus === 'approved' && <span style={{color: 'green'}}>Approved</span>}
+                      {student.odStatus === 'pending' && <span style={{color: 'orange'}}>Pending</span>}
+                      {student.odStatus === 'rejected' && <span style={{color: 'red'}}>Rejected</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="text-center p-4 bg-gray-100 rounded">
+              No students have requested OD for this event yet
+            </div>
+          )}
+          <div className="mt-4 flex justify-end">
+            <button
+              onClick={() => setShowStudentModal(false)}
+              className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
   const handleEdit = (event) => {
     setEditingEvent(event);
   };
@@ -216,11 +280,18 @@ const MyEvents = () => {
               >
                 <FaTrash className="inline mr-2" /> Delete
               </button>
+              <button
+                onClick={() => viewStudentsWithOD(event)}
+                className="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600"
+              >
+                View Students
+              </button>
             </div>
-          </div>
+        </div>
         ))}
-      </div>
-      {renderEditForm()}
+      </div>  
+      {renderStudentModal()}   
+       {renderEditForm()}
     </div>
   );
 };

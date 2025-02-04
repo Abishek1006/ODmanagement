@@ -7,6 +7,3 @@ createRoot(document.getElementById('root')).render(
     <App />
   </React.StrictMode>
 );
-
-// Add basename for GitHub Pages
-const basename = process.env.NODE_ENV === 'production' ? '/e-od-system' : '/';

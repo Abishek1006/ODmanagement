@@ -42,3 +42,18 @@ export const requestOD = async (odData) => {
     throw error;
   }
 };
+
+export const getEventStudentsWithOD = async (eventId) => {
+  try {
+    console.log('Making API request for event:', eventId);
+    const response = await api.get(`/od/event/${eventId}/students`);
+    console.log('API Response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching event students:', error);
+    throw error;
+  }
+};
+
+
+

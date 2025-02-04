@@ -74,12 +74,16 @@ function Login() {
                 response.data.isLeader || false
             );
             
-            if (response.data.isAdmin === true) {
-                navigate('/admin-dashboard');
-            } else if (response.data.primaryRole === 'student') {
+            // if (response.data.isAdmin === true) {
+            //     navigate('/admin-dashboard');
+            // } else
+             if (response.data.primaryRole === 'student') {
                 navigate('/student-dashboard');
-            } else if (response.data.primaryRole === 'teacher') {
+            } else if(response.data.primaryRole === 'teacher' || response.data.primaryRole === 'tutor' || response.data.primaryRole === 'ac' || response.data.primaryRole === 'hod' ) {
                 navigate('/teacher-dashboard');
+            }
+            else {
+                navigate('/admin-dashboard');
             }
         } catch (error) {
             setError(error.response?.data?.message || 'An error occurred during login');

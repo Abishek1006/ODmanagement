@@ -1,6 +1,6 @@
 // routes/od.route.js
 const express = require('express');
-const { createODRequest, approveODRequest, rejectODRequest, getODRequests, createImmediateODRequest, approveImmediateOD , getStudentsWithOD ,  getTeacherODRequests, teacherODApproval , createExternalODRequest ,getODHistory,getRejectedODRequests,reconsiderODRequest } = require('../controllers/od.controller');
+const { createODRequest, approveODRequest, rejectODRequest, getODRequests, createImmediateODRequest, approveImmediateOD , getStudentsWithOD ,  getTeacherODRequests, teacherODApproval , createExternalODRequest ,getODHistory,getRejectedODRequests,reconsiderODRequest,getEventStudentsWithOD } = require('../controllers/od.controller');
 const { protect, restrictToRole } = require('../middleware/auth.middleware');
 
 const router = express.Router();
@@ -25,6 +25,7 @@ router.post('/:odId/reconsider', protect, reconsiderODRequest);
 // Add this new route
 router.get('/history', protect, getODHistory);
 
+router.get('/event/:eventId/students', protect, getEventStudentsWithOD);
 // Get OD requests for teacher
 router.get('/teacher-requests', 
   protect, 
@@ -40,4 +41,5 @@ router.patch('/:odId/teacher-approval',
 );
 
 module.exports = router;
+
 

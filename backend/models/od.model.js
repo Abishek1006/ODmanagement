@@ -40,6 +40,7 @@ odSchema.pre('save', function(next) {
 });
 
 // Add TTL index on expiryDate
+odSchema.index({ eventName: 1 });
 odSchema.index({ expiryDate: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model('OD', odSchema);
