@@ -11,7 +11,7 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
   },
-  "homepage": "https://your-github-username.github.io/e-od-system",
+  "homepage": "https://Abishek1006.github.io/e-od-system",
   "dependencies": {
     "axios": "^1.7.7",
     "date-fns": "^4.1.0",
