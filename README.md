@@ -1,5 +1,3 @@
-Here’s the formatted `README.md` content for your **E-OD: Events and OD Management Platform** project. I've added design improvements, such as larger headings, bold text, and better organization for readability. You can copy and paste this directly into your `README.md` file:
-
 ```markdown
 # 🚀 E-OD: Events and OD Management Platform
 
