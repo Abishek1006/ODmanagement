@@ -1,15 +1,14 @@
 {
   "name": "auth",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
-"scripts": {
-    "dev": "node backend/server.js",
-    "build": "cd frontend && npm install && npm run build",
-    "start": "node backend/server.js"  
+  "scripts": {
+    "dev": "nodemon backend/server.js",
+    "start": "node backend/server.js"
   },
   "keywords": [],
-  "author": "",  "type": "commonjs",
+  "author": "",
+  "type": "commonjs",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",

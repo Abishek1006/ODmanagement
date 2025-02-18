@@ -3,7 +3,6 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const { connectDB } = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
-const path = require('path');
 
 // Import Routes
 const authRoutes = require('./routes/auth.routes');
@@ -19,17 +18,8 @@ connectDB();
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
-
-// MIME type handler
-app.use((req, res, next) => {
-  if (req.url.endsWith('.js')) {
-    res.type('application/javascript');
-  }
-  next();
-});
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -40,15 +30,6 @@ app.use('/api/user-details', userDetailsRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/admin', adminRoutes);
 
-// Static file serving
-app.use(express.static(path.join(__dirname, '../frontend/dist')));
-
-// React app handler
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-});
-
-// Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
