@@ -2,8 +2,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api', // Verify this matches your backend
+  baseURL: '/api'  
 });
+
 
 // Debug logging for requests
 api.interceptors.request.use((config) => {

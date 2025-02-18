@@ -16,7 +16,7 @@ const ProtectedAdminRoute = () => {
 
 function App() {
   return (
-    <Router basename="/e-od-system">
+    <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Login />} />
