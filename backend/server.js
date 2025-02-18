@@ -18,6 +18,7 @@ connectDB();
 
 const app = express();
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -30,6 +31,7 @@ app.use('/api/user-details', userDetailsRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/admin', adminRoutes);
 
+// Error handlers
 app.use(notFound);
 app.use(errorHandler);
 
