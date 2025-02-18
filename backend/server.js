@@ -34,17 +34,28 @@ app.use('/api/events', eventRoutes);
 app.use('/api/od', odRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/user-details', userDetailsRoutes);
-app.use('/api/courses', courseRoutes); // Add this line
+app.use('/api/courses', courseRoutes); 
+
+const path = require('path');
 
 // Add this line with your other route declarations
 app.use('/api/admin', adminRoutes);
 // Error Handling Middlewares
 app.use(notFound);
 app.use(errorHandler);
+// Add this before your routes
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
 
+// Add this after all your API routes
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+});
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
+
+
+
 

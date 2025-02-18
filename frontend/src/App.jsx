@@ -16,19 +16,13 @@ const ProtectedAdminRoute = () => {
 
 function App() {
   return (
-    <Router>
+    <Router basename="/e-od-system">
       <Routes>
-        {/* Authentication Routes */}
+        <Route path="/login" element={<Login />} />
         <Route path="/" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        
-        {/* Student Dashboard Routes */}
         <Route path="/student-dashboard/*" element={<StudentDashboard />} />
-        
-        {/* Teacher Dashboard Routes */}
         <Route path="/teacher-dashboard/*" element={<TeacherDashboard />} />
-
-        {/* Admin Dashboard Routes */}
         <Route path="/admin-dashboard/*" element={<ProtectedAdminRoute />} />
       </Routes>
     </Router>

@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node backend/server.js"
+    "dev": "node backend/server.js",
+    "build": "cd frontend && npm install && npm run build",
+    "start": "node backend/server.js"
   },
   "keywords": [],
-  "author": "",
-  "type": "commonjs",
+
+  "author": "",  "type": "commonjs",
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^2.4.3",

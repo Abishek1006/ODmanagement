@@ -8,10 +8,9 @@ import { FaCalendarAlt, FaMoneyBillAlt, FaInfoCircle, FaExternalLinkAlt } from '
     const handleRegister = () => {
       window.open(event.formLink, '_blank');
     };
-
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-end justify-center">
-        <div className="bg-white dark:bg-gray-800 w-full max-w-4xl rounded-t-xl p-6 transform transition-transform duration-300 ease-in-out translate-y-0 animate-slide-up">
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center pt-20 pb-8 px-4 overflow-y-auto">
+          <div className="bg-white dark:bg-gray-800 w-full max-w-4xl rounded-xl p-6 transform transition-transform duration-300 ease-in-out translate-y-0 animate-slide-up max-h-[90vh] overflow-y-auto">
           <button 
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
