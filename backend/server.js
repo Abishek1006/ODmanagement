@@ -22,6 +22,15 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+// Add before your static file serving
+app.use((req, res, next) => {
+  if (req.url.endsWith('.js')) {
+    res.type('application/javascript');
+  }
+  next();
+});
+
+// Your existing static file serving
 app.use(express.static(path.join(__dirname, '../frontend/dist')));
 // Routes
 app.use('/api/auth', authRoutes);
