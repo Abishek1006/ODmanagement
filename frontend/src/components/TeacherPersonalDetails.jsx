@@ -9,6 +9,7 @@ const TeacherPersonalDetails = () => {
     department: '',
     staffId: '',
     courses: [],
+    profilePicture: '',
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -25,7 +26,7 @@ const TeacherPersonalDetails = () => {
           department: userDetailsResponse.data.department || '',
           staffId: userDetailsResponse.data.staffId || '',
           courses: userDetailsResponse.data.courses || [],
-          profilePicture: userDetailsResponse.data.profilePicture || '', // Add this line
+          profilePicture: userDetailsResponse.data.profilePicture || '',
         });
         setLoading(false);
       } catch (error) {
@@ -34,7 +35,6 @@ const TeacherPersonalDetails = () => {
         setLoading(false);
       }
     };
-    
 
     fetchTeacherDetails();
     fetchTeachingCourses();
@@ -117,85 +117,82 @@ const TeacherPersonalDetails = () => {
     }
   };
 
-  if (loading) return <div className="flex justify-center items-center h-64">Loading teacher details...</div>;
+  if (loading) return <div className="flex justify-center items-center h-64 text-lg">Loading teacher details...</div>;
   if (error) return <div className="text-red-500 text-center">{error}</div>;
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-        <FaUser className="mr-2" /> Teacher Profile
+    <div className="p-4 md:p-8 max-w-4xl mx-auto">
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+        <FaUser className="mr-3" /> Teacher Profile
       </h2>
-      <div className="flex items-center space-x-4 mb-4">
-        {teacherDetails.profilePicture && (
-          <img
-            src={teacherDetails.profilePicture}
-            alt="Profile"
-            className="w-24 h-24 rounded-full object-cover"
-          />
-        )}
-        <div className="flex flex-col space-y-2">
+
+      <div className="flex flex-col md:flex-row items-center md:space-x-6 mb-6">
+        <div className="relative">
+          {teacherDetails.profilePicture && (
+            <img
+              src={teacherDetails.profilePicture}
+              alt="Profile"
+              className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-gray-300 dark:border-gray-600"
+            />
+          )}
+        </div>
+        <div className="flex flex-col space-y-3 w-full md:w-auto">
           <input
             type="file"
             onChange={handleImageChange}
             accept="image/*"
-            className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4
-            file:rounded-full file:border-0 file:text-sm file:font-semibold
-            file:bg-orange-50 file:text-orange-700 hover:file:bg-orange-100"
+            className="text-sm text-gray-600 w-full file:py-2 file:px-4
+            file:rounded-lg file:border-0 file:text-sm file:font-semibold
+            file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
           />
           <button
             onClick={handleImageUpload}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 
-            transition-colors duration-300 flex items-center"
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
           >
-            <FaImage className="mr-2" /> Upload Profile Picture
+            <FaImage className="inline-block mr-2" /> Upload Profile Picture
           </button>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border-2 border-gray-900 dark:border-gray-600">
-          <div className="space-y-2">
-            <p className="text-gray-700 dark:text-gray-300 flex items-center">
-              <FaUser className="mr-2" /> <strong>Name:</strong> {teacherDetails.name}
-            </p>
-            <p className="text-gray-700 dark:text-gray-300 flex items-center">
-              <FaEnvelope className="mr-2" /> <strong>Email:</strong> {teacherDetails.email}
-            </p>
-            <p className="text-gray-700 dark:text-gray-300 flex items-center">
-              <FaIdBadge className="mr-2" /> <strong>Staff ID:</strong> {teacherDetails.staffId}
-            </p>
-            <p className="text-gray-700 dark:text-gray-300 flex items-center">
-              <FaBuilding className="mr-2" /> <strong>Department:</strong> {teacherDetails.department}
-            </p>
-          </div>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-300 dark:border-gray-600">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <p className="text-gray-700 dark:text-gray-300 flex items-center">
+            <FaUser className="mr-2" /> <strong>Name:</strong> {teacherDetails.name}
+          </p>
+          <p className="text-gray-700 dark:text-gray-300 flex items-center">
+            <FaEnvelope className="mr-2" /> <strong>Email:</strong> {teacherDetails.email}
+          </p>
+          <p className="text-gray-700 dark:text-gray-300 flex items-center">
+            <FaIdBadge className="mr-2" /> <strong>Staff ID:</strong> {teacherDetails.staffId}
+          </p>
+          <p className="text-gray-700 dark:text-gray-300 flex items-center">
+            <FaBuilding className="mr-2" /> <strong>Department:</strong> {teacherDetails.department}
+          </p>
         </div>
+      </div>
 
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border-2 border-gray-900 dark:border-gray-600">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-            <FaBook className="mr-2" /> Teaching Courses
-          </h3>
-          <div className="space-y-2">
-            {teachingCourses.map((course) => (
-              <div
-                key={course._id}
-                className="flex justify-between items-center bg-orange-50 dark:bg-gray-700 p-2 rounded-lg"
-              >
-                <span className="text-gray-700 dark:text-gray-300">{course.courseName}</span>
-                <button
-                  onClick={() => handleRemoveCourse(course._id)}
-                  className="bg-red-500 text-white px-2 py-1 rounded-lg hover:bg-red-600 transition-colors duration-300 flex items-center"
-                >
-                  <FaTrash className="mr-1" /> Remove
-                </button>
-              </div>
-            ))}
-            <button
-              onClick={handleAddCourse}
-              className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-300 flex items-center"
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border border-gray-300 dark:border-gray-600 mt-6">
+        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+          <FaBook className="mr-2" /> Teaching Courses
+        </h3>
+        <div className="space-y-3">
+          {teachingCourses.map((course) => (
+            <div
+              key={course._id}
+              className="flex justify-between items-center bg-gray-100 dark:bg-gray-700 p-3 rounded-lg"
             >
-              <FaPlus className="mr-2" /> Add New Course
-            </button>
-          </div>
+              <span>{course.courseName}</span>
+              <button
+                onClick={() => handleRemoveCourse(course._id)}
+                className="bg-red-500 text-white px-3 py-1 rounded-lg hover:bg-red-600"
+              >
+                <FaTrash />
+              </button>
+            </div>
+          ))}
+          <button onClick={handleAddCourse} className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+            <FaPlus className="mr-2" /> Add New Course
+          </button>
         </div>
       </div>
     </div>

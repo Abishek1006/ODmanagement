@@ -34,40 +34,49 @@ import { FaCheckCircle, FaTimesCircle, FaClock } from 'react-icons/fa';
     if (approvalStatus === true) return <FaCheckCircle className="text-green-500" />;
     return <FaClock className="text-yellow-500" />;
   };
-
-  return (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg border-2 border-gray-900 dark:border-gray-600">
-      <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">OD History</h2>
-      <div className="overflow-x-auto">
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="bg-orange-100 dark:bg-gray-700">
-              <th className="p-2 text-left">Event Name</th>
-              <th className="p-2 text-left">From Date</th>
-              <th className="p-2 text-left">To Date</th>
-              <th className="p-2 text-left">Status</th>
-              <th className="p-2 text-left">Tutor Approval</th>
-              <th className="p-2 text-left">AC Approval</th>
-              <th className="p-2 text-left">HOD Approval</th>
-            </tr>
-          </thead>
-          <tbody>
-            {historyRequests.map((od) => (
-              <tr key={od._id} className="border-b border-gray-200 dark:border-gray-700">
-                <td className="p-2">{od.eventName}</td>
-                <td className="p-2">{new Date(od.dateFrom).toLocaleDateString()}</td>
-                <td className="p-2">{new Date(od.dateTo).toLocaleDateString()}</td>
-                <td className="p-2">{od.status}</td>
-                <td className="p-2">{getStatusIcon(od.tutorApproval, od.status)}</td>
-                <td className="p-2">{getStatusIcon(od.acApproval, od.status)}</td>
-                <td className="p-2">{getStatusIcon(od.hodApproval, od.status)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+    return (
+      <div className="bg-white dark:bg-gray-800 p-3 md:p-6 rounded-lg shadow-lg border-2 border-gray-900 dark:border-gray-600">
+        <h2 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mb-4">OD History</h2>
+        <div className="overflow-x-auto -mx-3 md:mx-0">
+          <div className="inline-block min-w-full align-middle">
+            <div className="overflow-hidden">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-orange-100 dark:bg-gray-700">
+                  <tr>
+                    <th className="p-2 text-left text-xs md:text-sm font-semibold">Event</th>
+                    <th className="hidden md:table-cell p-2 text-left text-xs md:text-sm font-semibold">From</th>
+                    <th className="hidden md:table-cell p-2 text-left text-xs md:text-sm font-semibold">To</th>
+                    <th className="p-2 text-left text-xs md:text-sm font-semibold">Status</th>
+                    <th className="p-2 text-left text-xs md:text-sm font-semibold">Approvals</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {historyRequests.map((od) => (
+                    <tr key={od._id} className="hover:bg-gray-50">
+                      <td className="p-2 text-xs md:text-sm">
+                        {od.eventName}
+                        <div className="md:hidden text-gray-500 text-xs">
+                          {new Date(od.dateFrom).toLocaleDateString()} - {new Date(od.dateTo).toLocaleDateString()}
+                        </div>
+                      </td>
+                      <td className="hidden md:table-cell p-2 text-xs md:text-sm">{new Date(od.dateFrom).toLocaleDateString()}</td>
+                      <td className="hidden md:table-cell p-2 text-xs md:text-sm">{new Date(od.dateTo).toLocaleDateString()}</td>
+                      <td className="p-2 text-xs md:text-sm">{od.status}</td>
+                      <td className="p-2">
+                        <div className="flex space-x-2">
+                          {getStatusIcon(od.tutorApproval, od.status)}
+                          {getStatusIcon(od.acApproval, od.status)}
+                          {getStatusIcon(od.hodApproval, od.status)}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-  );
-};
-
+    );
+  };
 export default ODHistory;
