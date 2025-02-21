@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import CourseDetailsView from '../components/CourseDetailsView';
@@ -15,6 +15,7 @@ const TeacherDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [userRoles, setUserRoles] = useState(api.getUserRoles());
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const sidebarRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -38,6 +39,28 @@ const TeacherDashboard = () => {
     fetchUserDetails();
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+        setSidebarOpen(false);
+      }
+    };
+
+    const handleScroll = (event) => {
+      if (event.deltaX > 50) {
+        setSidebarOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('wheel', handleScroll, { passive: true });
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('wheel', handleScroll);
+    };
+  }, []);
+
   const handleSectionChange = (section) => {
     navigate(section);
     setSidebarOpen(false);
@@ -48,18 +71,31 @@ const TeacherDashboard = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-orange-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-orange-50 dark:bg-gray-900">
       <Navbar />
-      <div className="relative flex flex-1">
+      <div className="flex flex-1">
+        {/* Sidebar Toggle Button for Mobile */}
         <div className="lg:hidden fixed top-4 left-4 z-40">
           <button onClick={() => setSidebarOpen(!sidebarOpen)} className="text-orange-600 dark:text-orange-400">
             {sidebarOpen ? <X size={30} /> : <Menu size={30} />}
           </button>
         </div>
-        
-        <nav className={`fixed lg:static top-0 left-0 w-64 h-full bg-orange-100 dark:bg-gray-800 p-4 border-r-2 border-orange-300 dark:border-gray-700 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 transition-transform duration-300 ease-in-out z-50 lg:z-auto`}> 
+
+        {/* Sidebar */}
+        <nav
+          ref={sidebarRef}
+          className={`fixed lg:static top-0 left-0 w-64 h-full bg-orange-100 dark:bg-gray-800 p-4 border-r-2 border-orange-300 dark:border-gray-700 transform ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0 transition-transform duration-300 ease-in-out z-50 lg:z-auto`}
+        >
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden absolute top-4 right-4 text-orange-600 dark:text-orange-400 mb-6"
+          >
+            <LogOut size={30} />
+          </button>
           <ul className="space-y-2">
-            {[ 
+            {[
               { path: 'personal-details', label: 'Personal Details' },
               { path: 'od-approval', label: 'OD Approval' },
               { path: 'courses', label: 'Courses' },
@@ -83,6 +119,7 @@ const TeacherDashboard = () => {
           </ul>
         </nav>
 
+        {/* Main Content */}
         <main className="flex-1 p-4 bg-white dark:bg-gray-800">
           <Routes>
             <Route path="/" element={<Navigate to="personal-details" replace />} />

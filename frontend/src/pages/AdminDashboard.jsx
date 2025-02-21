@@ -15,7 +15,7 @@ const AdminDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="flex">
+      <div className="flex flex-1">
         <nav className="w-64 min-h-screen bg-white shadow-lg">
           <ul className="p-4 space-y-2">
             <li>
@@ -44,7 +44,7 @@ const AdminDashboard = () => {
             </li>
           </ul>
         </nav>
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-8 bg-gray-100">
           <Routes>
             <Route path="/" element={<Navigate to="users" replace />} />
             <Route path="users" element={<AdminUserManagement />} />
@@ -53,7 +53,7 @@ const AdminDashboard = () => {
         </main>
       </div>
     </div>
-  );  
+  );
 };
 
 export default AdminDashboard;
