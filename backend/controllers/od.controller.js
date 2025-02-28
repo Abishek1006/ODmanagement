@@ -1,3 +1,4 @@
+
 // controllers/event.controller.js
 const OD = require('../models/od.model');
 const User = require('../models/user.model');
@@ -128,38 +129,21 @@ exports.rejectODRequest = async (req, res) => {
     res.status(500).json({ message: 'Server error during OD request rejection' });
   }
 };
-
-// Get OD requests for a user
-// controllers/od.controller.js
-exports.getODRequests = async (req, res) => {
-  try {
-    const currentDate = new Date();
-    const currentTime = currentDate.toLocaleTimeString('en-US', { hour12: false });
+  // Get OD requests for a user
+  // controllers/od.controller.js
+  exports.getODRequests = async (req, res) => {
+    try {
+      const odRequests = await OD.find({ studentId: req.user._id })
+        .lean()
+        .select('eventName dateFrom dateTo status')
+        .sort({ dateFrom: -1 })
+        .limit(50);
     
-    const odRequests = await OD.find({
-      studentId: req.user._id,
-      status: 'pending',
-      $or: [
-        {
-          dateFrom: { $gt: currentDate }
-        },
-        {
-          dateFrom: currentDate,
-          startTime: { $gt: currentTime }
-        }
-      ]
-    })
-    .populate('tutorId acId hodId')
-    .sort('-createdAt');
-
-    console.log('Fetched OD Requests:', odRequests);
-    res.json(odRequests);
-  } catch (error) {
-    console.error('Error fetching OD requests:', error);
-    res.status(500).json({ message: 'Error fetching OD requests' });
-  }
-};
-
+      res.json(odRequests);
+    } catch (error) {
+      res.status(500).json({ message: 'Error fetching OD requests' });
+    }
+  };
 // Add this new controller method
 exports.getODHistory = async (req, res) => {
   try {
@@ -183,11 +167,13 @@ exports.getODHistory = async (req, res) => {
     .sort('-createdAt');
 
     res.json(historyRequests);
-  } catch (error) {
+  }
+   catch (error) {
     console.error('Error fetching OD history:', error);
     res.status(500).json({ message: 'Error fetching OD history' });
   }
-};exports.createImmediateODRequest = async (req, res) => {
+};
+exports.createImmediateODRequest = async (req, res) => {
   try {
     const { studentId, eventName, dateFrom, dateTo, reason } = req.body;
 
@@ -235,63 +221,6 @@ exports.approveImmediateOD = async (req, res) => {
     res.status(400).json({ message: 'Error approving immediate OD request', error });
   }
 };
-exports.getStudentsWithOD = async (req, res) => {
-  // try {
-  //   const { courseId } = req.query;
-  //   console.log('Fetching students for course:', courseId);
-
-  //   // Get course details
-  //   const course = await Course.findById(courseId);
-  //   if (!course) {
-  //     return res.status(404).json({ message: 'Course not found' });
-  //   }
-
-  //   // Find students enrolled in this course
-  //   const students = await User.find({
-  //     'courses.courseId': courseId,
-  //     primaryRole: 'student'
-  //   });
-
-  //   console.log('Found students:', students);
-
-  //   // Get OD details for each student
-  //   const studentsWithODDetails = await Promise.all(students.map(async (student) => {
-  //     const odRequests = await OD.find({
-  //       studentId: student._id,
-  //       status: 'approved',
-  //       dateFrom: { $lte: new Date() },
-  //       dateTo: { $gte: new Date() }
-  //     });
-
-  //     console.log(`OD requests for student ${student.name}:`, odRequests);
-
-  //     return {
-  //       _id: student._id,
-  //       name: student.name,
-  //       rollNo: student.rollNo,
-  //       department: student.department,
-  //       odRequests: odRequests
-  //     };
-  //   }));
-
-  //   const response = {
-  //     courseName: course.courseName,
-  //     courseId: course.courseId,
-  //     students: studentsWithODDetails
-  //   };
-
-  //   console.log('Sending response:', response);
-  //   res.json(response);
-
-  // } catch (error) {
-  //   console.error('Detailed error in getStudentsWithOD:', error);
-  //   res.status(500).json({ 
-  //     message: 'Error fetching students data',
-  //     error: error.message,
-  //     stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-  //   });
-  // }
-};
 exports.createExternalODRequest = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('tutorId acId hodId');
@@ -329,77 +258,93 @@ exports.createExternalODRequest = async (req, res) => {
 
 exports.getTeacherODRequests = async (req, res) => {
   try {
-    const teacherId = req.user._id;
+    const userRole = req.user.primaryRole;
+    const approvalField = `${userRole}Approval`;
     
-    const odRequests = await OD.find({
-      $or: [
-        { tutorId: teacherId, status: 'pending' },
-        { acId: teacherId, status: 'pending' },
-        { hodId: teacherId, status: 'pending' }
-      ]
-    })
-    .populate('studentId', 'name rollNo department');
+    const query = {
+      [`${approvalField}`]: false,
+      status: 'pending'
+    };
 
-    res.status(200).json(odRequests);
+    // Add previous approval requirements
+    if (userRole === 'ac') {
+      query.tutorApproval = true;
+    }
+    if (userRole === 'hod') {
+      query.tutorApproval = true;
+      query.acApproval = true;
+    }
+
+    const requests = await OD.find(query)
+      .populate('studentId', 'name rollNo department')
+      .lean();
+
+    res.json(requests);
   } catch (error) {
     console.error('Error fetching teacher OD requests:', error);
     res.status(500).json({ message: 'Server error during OD request retrieval' });
   }
 };
-
 exports.teacherODApproval = async (req, res) => {
   try {
     const { odId } = req.params;
     const { status } = req.body;
     const teacherId = req.user._id;
+    const userRole = req.user.primaryRole;
 
     const odRequest = await OD.findById(odId);
-
     if (!odRequest) {
       return res.status(404).json({ message: 'OD request not found' });
     }
 
-    // Determine approval based on teacher's role
-    if (odRequest.tutorId.toString() === teacherId.toString()) {
-      odRequest.tutorApproval = status === 'approved';
-    } else if (odRequest.acId.toString() === teacherId.toString()) {
-      odRequest.acApproval = status === 'approved';
-    } else if (odRequest.hodId.toString() === teacherId.toString()) {
-      odRequest.hodApproval = status === 'approved';
-    } else {
-      return res.status(403).json({ message: 'Unauthorized to approve this request' });
+    // Enforce hierarchical approval
+    if (userRole === 'ac' && !odRequest.tutorApproval) {
+      return res.status(403).json({ message: 'Tutor approval required first' });
+    }
+    if (userRole === 'hod' && (!odRequest.tutorApproval || !odRequest.acApproval)) {
+      return res.status(403).json({ message: 'Previous approvals required' });
     }
 
-    // Update overall status if all approvals are complete
-    if (odRequest.tutorApproval && odRequest.acApproval && odRequest.hodApproval) {
-      odRequest.status = 'approved';
-    } else if (status === 'rejected') {
+    // Update approvals
+    if (userRole === 'tutor') {
+      odRequest.tutorApproval = status === 'approved';
+    } else if (userRole === 'ac' && odRequest.tutorApproval) {
+      odRequest.acApproval = status === 'approved';
+    } else if (userRole === 'hod' && odRequest.tutorApproval && odRequest.acApproval) {
+      odRequest.hodApproval = status === 'approved';
+    }
+
+    // Update final status
+    if (status === 'rejected') {
       odRequest.status = 'rejected';
+    } else if (odRequest.tutorApproval && odRequest.acApproval && odRequest.hodApproval) {
+      odRequest.status = 'approved';
     }
 
     await odRequest.save();
-
-
     res.status(200).json(odRequest);
   } catch (error) {
     console.error('Error in OD approval:', error);
     res.status(500).json({ message: 'Server error during OD approval' });
   }
 };
-
 exports.getRejectedODRequests = async (req, res) => {
   try {
     const teacherId = req.user._id;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Set to start of today
     
     const rejectedRequests = await OD.find({
       $or: [
         { tutorId: teacherId, status: 'rejected' },
         { acId: teacherId, status: 'rejected' },
         { hodId: teacherId, status: 'rejected' }
-      ]
+      ],
+      dateFrom: { $gte: today } // Only show ODs where event hasn't started yet
     })
     .populate('studentId', 'name rollNo department')
-    .sort('-createdAt');
+    .sort('-createdAt')
+    .lean(); // Added lean() for better performance
 
     res.status(200).json(rejectedRequests);
   } catch (error) {

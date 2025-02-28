@@ -40,4 +40,15 @@ const userSchema = new mongoose.Schema({
   isAdmin: { type: Boolean, default: false },
   profilePicture: { type: String } // Store Base64 encoded image here
 });
+
+// Add performance-optimized indexes
+userSchema.index({ email: 1 }, { unique: true }); // Fast email lookups for login
+userSchema.index({ staffId: 1 }, { unique: true, sparse: true }); // Fast staff ID queries
+userSchema.index({ rollNo: 1 }, { sparse: true }); // Fast student roll number queries
+userSchema.index({ department: 1, primaryRole: 1 }); // Fast department + role filtering
+userSchema.index({ 'courses.courseId': 1 }); // Fast course lookups
+userSchema.index({ primaryRole: 1 }); // Fast role-based queries
+
+// Add compound index for common auth patterns
+userSchema.index({ email: 1, primaryRole: 1 });
 module.exports = mongoose.model('User', userSchema);

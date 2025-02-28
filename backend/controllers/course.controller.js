@@ -107,7 +107,8 @@ exports.getStudentsWithOD = async (req, res) => {
     console.error('Error:', error);
     res.status(500).json({ message: 'Error fetching students data' });
   }
-};exports.getCourseById = async (req, res) => {
+};
+exports.getCourseById = async (req, res) => {
   try {
     const course = await Course.findOne({ courseId: req.params.courseId })
       .populate({

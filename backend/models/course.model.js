@@ -11,4 +11,9 @@ const courseSchema = new mongoose.Schema({
   timestamps: true
 });
 
+
+// Optimize course queries
+courseSchema.index({ department: 1, semester: 1 });
+courseSchema.index({ teachers: 1 });
+
 module.exports = mongoose.model('Course', courseSchema);

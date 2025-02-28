@@ -41,18 +41,21 @@ const ODApprovalSection = () => {
 
   const handleODApproval = async (odId, status) => {
     try {
-      await api.patch(`/od/${odId}/teacher-approval`, { status });
-      
-      // Update local state to reflect the change
-      setODRequests(prevRequests =>
-        prevRequests.filter(request => request._id !== odId)
-      );
+      const response = await api.patch(`/od/${odId}/teacher-approval`, { status });
+      if (response.data) {
+        setODRequests(prevRequests => 
+          prevRequests.filter(request => request._id !== odId)
+        );
+      }
     } catch (error) {
-      console.error('Failed to update OD request:', error);
-      setError('Failed to process OD request');
+      if (error.response?.status === 403) {
+        // Handle hierarchical validation errors
+        setError(error.response.data.message);
+      } else {
+        setError('Failed to process OD request');
+      }
     }
   };
-
   const handleSelectAll = (e) => {
     if (e.target.checked) {
       const allIds = odRequests.map(request => request._id);
@@ -112,7 +115,7 @@ const ODApprovalSection = () => {
           </button>
         </div>
       )}
-
+      
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -148,7 +151,7 @@ const ODApprovalSection = () => {
                 <input
                   type="checkbox"
                   checked={selectedODs.has(request._id)}
-                  onChange={() => handleSelectSingle(request._id)}
+                  onChanzzge={() => handleSelectSingle(request._id)}
                   className="rounded border-gray-300"
                 />
               </td>

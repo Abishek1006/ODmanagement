@@ -227,58 +227,6 @@ exports.updateEvent = async (req, res) => {
     res.status(500).json({ message: 'Error updating event', error: error.message });
   }
 };// Update an event
-exports.updateEvent = async (req, res) => {
-  try {
-    const event = await Event.findById(req.params.id);
-    
-    if (!event) {
-      return res.status(404).json({ 
-        message: 'Event not found',
-        errors: ['No event with the given ID exists']
-      });
-    }
-
-    // Check permissions
-    if (event.createdBy.toString() !== req.user._id.toString() && !canEditAnyEvent(req.user)) {
-      return res.status(403).json({ 
-        message: 'You do not have permission to update this event',
-        errors: ['Insufficient permissions']
-      });
-    }
-
-    // Validate input
-    const validationErrors = validateEventInput({
-      ...event.toObject(), 
-      ...req.body
-    });
-    if (validationErrors.length > 0) {
-      return res.status(400).json({ 
-        message: 'Validation failed', 
-        errors: validationErrors 
-      });
-    }
-
-    // Update event fields
-    const { name, prize, entryFee, entryType, imageUrl, details, formLink, deadline } = req.body;
-    event.name = name || event.name;
-    event.prize = prize || event.prize;
-    event.entryFee = entryFee || event.entryFee;
-    event.entryType = entryType || event.entryType;
-    event.imageUrl = imageUrl || event.imageUrl;
-    event.details = details || event.details;
-    event.formLink = formLink || event.formLink;
-    event.deadline = deadline || event.deadline;
-
-    const updatedEvent = await event.save();
-    res.status(200).json(updatedEvent);
-  } catch (error) {
-    console.error('Event update error:', error);
-    res.status(500).json({ 
-      message: 'Error updating event', 
-      error: error.message 
-    });
-  }
-};
 // Delete an event
 exports.deleteEvent = async (req, res) => {
   try {

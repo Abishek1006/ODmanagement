@@ -13,7 +13,17 @@ import MyEvents from '../components/MyEvents';
 
 const TeacherDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [userRoles, setUserRoles] = useState(api.getUserRoles());
+  const [userRole, setUserRole] = useState(api.getUserRoles().primaryRole);
+
+  // Add role-specific UI elements
+  const getRoleSpecificTitle = () => {
+    switch(userRole) {
+      case 'tutor': return 'Pending OD Requests';
+      case 'ac': return 'Tutor Approved Requests';
+      case 'hod': return 'AC Approved Requests';
+      default: return 'OD Requests';
+    }
+  };
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const sidebarRef = useRef(null);
   const navigate = useNavigate();

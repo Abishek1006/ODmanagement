@@ -140,4 +140,22 @@ const uploadProfilePicture = (imageData) => {
 
 api.uploadProfilePicture = uploadProfilePicture;
 
+
+// Add specific methods for hierarchical approvals
+api.getTeacherODRequests = () => {
+  return api.get('/od/teacher-requests')
+    .then(response => {
+      console.log('Fetched OD requests:', response.data);
+      return response;
+    })
+    .catch(error => {
+      console.error('Error fetching OD requests:', error);
+      throw error;
+    });
+};
+
+api.approveOD = (odId, status) => {
+  return api.patch(`/od/${odId}/teacher-approval`, { status });
+};
+
 export default api;
