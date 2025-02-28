@@ -255,15 +255,21 @@ exports.createExternalODRequest = async (req, res) => {
     });
   }
 };
-
 exports.getTeacherODRequests = async (req, res) => {
   try {
     const userRole = req.user.primaryRole;
     const approvalField = `${userRole}Approval`;
-    
+
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0); // Start of today
+
+    const endDate = new Date(currentDate);
+    endDate.setDate(endDate.getDate() + 1); // Start of tomorrow
+
     const query = {
       [`${approvalField}`]: false,
-      status: 'pending'
+      status: 'pending',
+      dateFrom: { $gte: currentDate, $lt: endDate } // Include all requests for today
     };
 
     // Add previous approval requirements
@@ -285,6 +291,8 @@ exports.getTeacherODRequests = async (req, res) => {
     res.status(500).json({ message: 'Server error during OD request retrieval' });
   }
 };
+
+
 exports.teacherODApproval = async (req, res) => {
   try {
     const { odId } = req.params;

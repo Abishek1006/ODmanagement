@@ -7,6 +7,24 @@ const ODApprovalSection = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedODs, setSelectedODs] = useState(new Set());
+  const userRole = api.getUserRoles().primaryRole;
+
+  const getRoleSpecificStatus = (request) => {
+    switch(userRole) {
+      case 'tutor': return request.tutorApproval ? 'Approved' : 'Pending';
+      case 'ac': return request.acApproval ? 'Approved' : 'Pending';
+      case 'hod': return request.hodApproval ? 'Approved' : 'Pending';
+      default: return 'Unknown';
+    }
+  };
+
+  const getApprovalStatus = (request) => {
+    const statuses = [];
+    if (request.tutorApproval) statuses.push('Tutor ✓');
+    if (request.acApproval) statuses.push('AC ✓');
+    if (request.hodApproval) statuses.push('HOD ✓');
+    return statuses.join(' → ') || 'Pending';
+  };
 
   const filterFutureODs = (requests) => {
     const currentDateTime = new Date();
@@ -26,9 +44,9 @@ const ODApprovalSection = () => {
   useEffect(() => {
     const fetchODRequests = async () => {
       try {
-        const response = await api.get('/od/teacher-requests');
-        const futureODs = filterFutureODs(response.data);
-        setODRequests(futureODs);
+        const response = await api.getTeacherODRequests();
+        console.log('Fetched data:', response.data); // Debug log
+        setODRequests(response.data);
         setLoading(false);
       } catch (error) {
         console.error('Failed to fetch OD requests:', error);

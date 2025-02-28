@@ -145,13 +145,17 @@ api.uploadProfilePicture = uploadProfilePicture;
 api.getTeacherODRequests = () => {
   return api.get('/od/teacher-requests')
     .then(response => {
-      console.log('Fetched OD requests:', response.data);
+      console.log('API Response:', response);
       return response;
     })
     .catch(error => {
-      console.error('Error fetching OD requests:', error);
+      console.error('API Error:', error);
       throw error;
     });
+};
+
+api.getApprovalStatus = () => {
+  return api.get('/od/approval-status');
 };
 
 api.approveOD = (odId, status) => {
