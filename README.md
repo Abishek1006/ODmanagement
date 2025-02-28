@@ -1,153 +1,352 @@
-```markdown
 # 🚀 E-OD: Events and OD Management Platform
 
-A **comprehensive platform** to streamline On-Duty (OD) management and event organization for educational institutions.
+## 📋 Table of Contents
+- [Overview](#overview)
+- [Core Features](#core-features)
+- [Architecture](#architecture)
+- [Technical Stack](#technical-stack)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [API Documentation](#api-documentation)
+- [Security](#security)
+- [User Roles & Permissions](#user-roles--permissions)
+- [Contributing](#contributing)
+- [Support](#support)
 
----
+## Overview
 
-## 🌟 Overview
+The E-OD System is a modern, scalable platform designed to digitize and streamline On-Duty (OD) management and event organization in educational institutions. It replaces traditional paper-based workflows with an efficient digital solution that maintains institutional hierarchies while providing real-time updates and transparent tracking.
 
-The **E-OD System** revolutionizes the traditional paper-based OD approval process by providing a **digital platform** that connects students, teachers, and administrators. It simplifies event participation tracking and OD approvals while maintaining proper hierarchical authorization.
+### Key Benefits
+- Reduced processing time for OD approvals
+- Paperless, environment-friendly workflow
+- Real-time tracking and notifications
+- Comprehensive event management
+- Data-driven insights for administration
+- Enhanced transparency and accountability
 
----
+## Core Features
 
-## ✨ Features
+### Student Portal
+- **Smart OD Request System**
+  - Intuitive form with auto-fill capabilities
+  - Document upload support (medical certificates, event invitations)
+  - Multi-level approval tracking
+  - Emergency request prioritization
 
-### **For Students**
-- Digital OD request submission
-- Event registration and participation
-- Real-time OD approval status tracking
-- Personal dashboard with event history
-- Profile management
-- Immediate OD requests for urgent situations
+- **Event Management**
+  - One-click event registration
+  - Participation certificate generation
+  - Event calendar integration
+  - Automated attendance marking
 
-### **For Teachers/Staff**
-- Course management dashboard
-- OD approval interface
-- Student attendance tracking
-- Profile and course updates
-- Automated notifications
+- **Dashboard Analytics**
+  - OD usage statistics
+  - Event participation history
+  - Course-wise attendance reports
+  - Notification center
 
-### **For Administrators**
-- User management
-- Event oversight
-- System monitoring
-- Role assignment
+### Faculty Dashboard
+- **OD Management Console**
+  - Batch approval capabilities
+  - Custom approval workflows
+  - Student history view
+  - Communication channel with students
 
----
+- **Course Management**
+  - Attendance tracking and reports
+  - Course schedule management
+  - Student performance analytics
+  - Bulk operations support
 
-## 🛠️ Tech Stack
+### Administrative Interface
+- **System Configuration**
+  - Role-based access control
+  - Department and course setup
+  - Academic calendar management
+  - Policy configuration
 
-- **Frontend**: React.js
-- **Backend**: Node.js, Express.js
+- **Analytics & Reporting**
+  - Institution-wide attendance insights
+  - Event participation statistics
+  - OD pattern analysis
+  - Custom report generation
+
+## Architecture
+
+### System Design
+```mermaid
+graph TD
+    A[Client Layer] --> B[API Gateway]
+    B --> C[Application Layer]
+    C --> D[Service Layer]
+    D --> E[Database Layer]
+    D --> F[Cache Layer]
+    B --> G[Authentication Service]
+    C --> H[Notification Service]
+```
+
+### Security Architecture
+- JWT-based authentication
+- Role-based access control (RBAC)
+- API rate limiting
+- Request validation middleware
+- Data encryption at rest
+- Audit logging
+
+## Technical Stack
+
+### Frontend
+- **Framework**: React.js 18
+- **State Management**: Redux Toolkit
+- **UI Components**: Material-UI v5
+- **Form Handling**: React Hook Form
+- **API Client**: Axios
+- **Testing**: Jest & React Testing Library
+
+### Backend
+- **Runtime**: Node.js 18+
+- **Framework**: Express.js
 - **Database**: MongoDB
-- **Authentication**: JWT
+- **Caching**: Redis
+- **Task Queue**: Bull
+- **Testing**: Mocha & Chai
 
----
+### DevOps
+- **Containerization**: Docker
+- **CI/CD**: GitHub Actions
+- **Monitoring**: Prometheus & Grafana
+- **Logging**: ELK Stack
 
-## 🚀 Installation
+## Getting Started
+
+### Prerequisites
+- Node.js 18+
+- MongoDB 5+
+- Redis (optional)
+- Git
+
+### Installation
 
 1. Clone the repository:
 ```bash
 git clone https://github.com/yourusername/e-od-system.git
+cd e-od-system
 ```
 
-2. Install backend dependencies:
+2. Set up environment variables:
 ```bash
-cd backend
-npm install
-```
-
-3. Install frontend dependencies:
-```bash
-cd frontend
-npm install
-```
-
-4. Create a `.env` file in the `backend` directory with the following variables:
-```env
+# Backend (.env)
 PORT=5000
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
+MONGODB_URI=mongodb://localhost:27017/e-od
+JWT_SECRET=your_secure_secret
 NODE_ENV=development
+REDIS_URL=redis://localhost:6379
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USER=your_email
+SMTP_PASS=your_password
+
+# Frontend (.env.local)
+VITE_API_URL=http://localhost:5000/api
+VITE_APP_ENV=development
 ```
 
-5. Start the backend server:
+3. Install dependencies:
 ```bash
+# Backend
 cd backend
-npm start
+npm install
+
+# Frontend
+cd frontend
+npm install
 ```
 
-6. Start the frontend development server:
+4. Start development servers:
 ```bash
-cd frontend
+# Backend
+npm run dev
+
+# Frontend
 npm run dev
 ```
 
----
+### Docker Deployment
+```bash
+# Build images
+docker-compose build
 
-## 📂 Project Structure
+# Start services
+docker-compose up -d
+```
+
+## Project Structure
 
 ```
-E-ODSYSTEM/
+E-OD-SYSTEM/
 ├── backend/
 │   ├── config/
+│   │   ├── database.js
+│   │   ├── redis.js
+│   │   └── mail.js
 │   ├── controllers/
+│   │   ├── auth.controller.js
+│   │   ├── events.controller.js
+│   │   └── od.controller.js
 │   ├── middleware/
+│   │   ├── auth.middleware.js
+│   │   ├── validation.middleware.js
+│   │   └── error.middleware.js
 │   ├── models/
+│   │   ├── user.model.js
+│   │   ├── event.model.js
+│   │   └── od.model.js
 │   ├── routes/
+│   │   ├── auth.routes.js
+│   │   ├── events.routes.js
+│   │   └── od.routes.js
+│   ├── services/
+│   │   ├── mail.service.js
+│   │   └── notification.service.js
 │   └── server.js
-└── frontend/
-    ├── src/
-    │   ├── assets/
-    │   ├── components/
-    │   ├── pages/
-    │   ├── services/
-    │   ├── App.jsx
-    │   └── main.jsx
-    └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   │   ├── common/
+│   │   │   ├── forms/
+│   │   │   └── layouts/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   ├── services/
+│   │   ├── store/
+│   │   ├── utils/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   └── package.json
+├── docker-compose.yml
+└── README.md
 ```
 
----
+## API Documentation
 
-## 🔗 API Endpoints
-
-### **Authentication**
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
-
-### **Events**
-- `GET /api/events` - Get all events
-- `POST /api/events` - Create new event
-- `GET /api/events/:id` - Get specific event
-
-### **OD Management**
-- `POST /api/od` - Create OD request
-- `GET /api/od/history` - Get OD history
-- `PUT /api/od/:id` - Update OD status
-
-### **User Management**
-- `GET /api/user-details` - Get user profile
-- `PUT /api/user-details` - Update user profile
-- `GET /api/user-details/courses/enrolled` - Get enrolled courses
-
----
-
-## 👥 User Roles
-
-- **Students**: Request ODs, register for events
-- **Tutors**: First level OD approval
-- **Academic Coordinators**: Second level OD approval
-- **HODs**: Final level OD approval
-- **Teachers**: View student ODs for their courses
-- **Event Organizers**: Create and manage events
-- **Admins**: System administration
-
----
-
-## 📞 Contact
-
-Your Name - [@Abishek](https://github.com/Abishek1006)  
-Your Name - [@Arjun](https://github.com/Arjun-Debugs)  
-Your Name - [@Dulal Roy](https://github.com/DulalRoy12022005)
+### Authentication
 ```
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/refresh-token
+POST /api/auth/logout
+```
+
+### Events
+```
+GET    /api/events
+POST   /api/events
+GET    /api/events/:id
+PUT    /api/events/:id
+DELETE /api/events/:id
+POST   /api/events/:id/register
+```
+
+### OD Management
+```
+POST   /api/od
+GET    /api/od
+GET    /api/od/:id
+PUT    /api/od/:id
+DELETE /api/od/:id
+POST   /api/od/:id/approve
+POST   /api/od/:id/reject
+```
+
+### User Management
+```
+GET    /api/users
+GET    /api/users/:id
+PUT    /api/users/:id
+DELETE /api/users/:id
+GET    /api/users/:id/courses
+POST   /api/users/:id/courses
+```
+
+## Security
+
+### Authentication Flow
+1. User login with credentials
+2. JWT token generation with expiry
+3. Refresh token rotation
+4. Secure cookie storage
+5. CSRF protection
+
+### Data Protection
+- Input sanitization
+- XSS prevention
+- SQL injection protection
+- Rate limiting
+- Request validation
+
+## User Roles & Permissions
+
+### Role Hierarchy
+1. **Super Admin**
+   - Full system access
+   - User management
+   - System configuration
+
+2. **Department HOD**
+   - Department-wide access
+   - Final OD approval
+   - Staff management
+
+3. **Academic Coordinator**
+   - Course coordination
+   - Second-level OD approval
+   - Event approval
+
+4. **Faculty**
+   - Course management
+   - First-level OD approval
+   - Attendance management
+
+5. **Event Organizer**
+   - Event creation
+   - Participant management
+   - Certificate generation
+
+6. **Student**
+   - OD requests
+   - Event registration
+   - Profile management
+
+### Permission Matrix
+| Feature           | Student | Faculty | Coordinator | HOD | Admin |
+|-------------------|---------|---------|-------------|-----|-------|
+| View Events       | ✅      | ✅      | ✅          | ✅  | ✅    |
+| Create Events     | ❌      | ✅      | ✅          | ✅  | ✅    |
+| Request OD        | ✅      | ❌      | ❌          | ❌  | ❌    |
+| Approve OD        | ❌      | ✅      | ✅          | ✅  | ✅    |
+| Manage Users      | ❌      | ❌      | ❌          | ✅  | ✅    |
+| System Config     | ❌      | ❌      | ❌          | ❌  | ✅    |
+
+## Contributing
+
+### Development Workflow
+1. Fork the repository
+2. Create feature branch
+3. Commit changes
+4. Create pull request
+5. Code review
+6. Merge
+
+### Code Standards
+- ESLint configuration
+- Prettier formatting
+- TypeScript strict mode
+- Unit test coverage
+- Documentation requirements
+
+### Team
+- Abishek ([@Abishek1006](https://github.com/Abishek1006)) - Frontend Lead
+- Arjun ([@Arjun-Debugs](https://github.com/Arjun-Debugs)) - Backend Lead
+- Dulal Roy ([@DulalRoy12022005](https://github.com/DulalRoy12022005)) - DevOps Lead
