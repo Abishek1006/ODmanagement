@@ -15,14 +15,12 @@ const odSchema = new mongoose.Schema({
   tutorApproval: { type: Boolean, default: false },
   acApproval: { type: Boolean, default: false },
   hodApproval: { type: Boolean, default: false },
-  isImmediate: { type: Boolean, default: false },
   isExternal: { type: Boolean, default: false },
   location: { type: String },
   eventType: { type: String },
   proof: { type: String, default: false },
   immediateApprover: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   immediateApprovalDate: { type: Date },
-  expiryDate: { type: Date },
   studentDetails: {
     name: { type: String },
     rollNo: { type: String },
@@ -33,7 +31,12 @@ const odSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     status: { type: String, enum: ['pending', 'approved', 'rejected'] },
     timestamp: Date
-  }]
+  }],
+  semester: { 
+    type: String, 
+    required: true,
+    enum: ['1', '2', '3', '4', '5', '6', '7', '8'] 
+  },
 }, { timestamps: true });
 
 // Add method to check approval eligibility
@@ -43,22 +46,13 @@ odSchema.methods.canBeApprovedBy = function(userRole) {
   if (userRole === 'hod') return this.tutorApproval && this.acApproval;
   return false;
 };
-// Add pre-save middleware to set expiry date
-odSchema.pre('save', function(next) {
-  if (this.dateTo) {
-    // Set expiry date to 30 days after dateTo
-    this.expiryDate = new Date(this.dateTo.getTime() + (30 * 24 * 60 * 60 * 1000));
-  }
-  next();
-});
 
-// Add TTL index on expiryDate
+// Optimized indexes
 odSchema.index({ eventName: 1 });
-odSchema.index({ expiryDate: 1 }, { expireAfterSeconds: 0 });
-// Optimize OD model with compound indexes
 odSchema.index({ studentId: 1, dateFrom: -1, status: 1 });
 odSchema.index({ tutorId: 1, status: 1, dateFrom: -1 });
 odSchema.index({ acId: 1, status: 1, dateFrom: -1 });
 odSchema.index({ hodId: 1, status: 1, dateFrom: -1 });
 odSchema.index({ department: 1, dateFrom: -1 });
+
 module.exports = mongoose.model('OD', odSchema);

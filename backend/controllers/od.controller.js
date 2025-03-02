@@ -6,29 +6,23 @@ const Course = require('../models/course.model');
 // Create an OD request
 exports.createODRequest = async (req, res) => {
   try {
-    console.log('Received OD Request:', req.body);
-    
     const { 
       studentId, eventName, dateFrom, dateTo, 
       startTime, endTime, reason, tutorId, 
-      acId, hodId, isExternal, location, eventType 
+      acId, hodId, isExternal, location, eventType,
+      semester
     } = req.body;
 
-    // Validate required fields
-    const requiredFields = {
-      studentId, eventName, dateFrom, dateTo, 
-      startTime, endTime, reason, tutorId, acId, hodId
-    };
-
-    const missingFields = Object.entries(requiredFields)
-      .filter(([_, value]) => !value)
-      .map(([key]) => key);
-
-    if (missingFields.length > 0) {
-      console.log('Missing fields:', missingFields);
+    if (!semester) {
       return res.status(400).json({ 
-        message: 'Missing required fields', 
-        fields: missingFields 
+        message: 'Semester is required'
+      });
+    }
+
+    // Validate semester is one of the allowed values
+    if (!['1', '2', '3', '4', '5', '6', '7', '8'].includes(semester)) {
+      return res.status(400).json({
+        message: 'Invalid semester value'
       });
     }
 
@@ -46,10 +40,10 @@ exports.createODRequest = async (req, res) => {
       status: 'pending',
       isExternal: isExternal || false,
       location,
-      eventType
+      eventType,
+      semester
     });
 
-    console.log('Created OD Request:', odRequest);
     res.status(201).json({ 
       message: 'OD request created successfully', 
       odRequest 
@@ -61,8 +55,7 @@ exports.createODRequest = async (req, res) => {
       error: error.message 
     });
   }
-};
-// Approve OD request
+};// Approve OD request
 exports.approveODRequest = async (req, res) => {
   try {
     const odId = req.params.odId;
@@ -173,54 +166,6 @@ exports.getODHistory = async (req, res) => {
     res.status(500).json({ message: 'Error fetching OD history' });
   }
 };
-exports.createImmediateODRequest = async (req, res) => {
-  try {
-    const { studentId, eventName, dateFrom, dateTo, reason } = req.body;
-
-    const odRequest = await OD.create({
-      studentId,
-      eventName,
-      dateFrom,
-      dateTo,
-      reason,
-      status: 'pending',
-      isImmediate: true
-    });
-
-
-    res.status(201).json({ message: 'Immediate OD request created successfully', odRequest });
-  } catch (error) {
-    console.error('Error creating immediate OD request:', error);
-    res.status(400).json({ message: 'Error creating immediate OD request', error });
-  }
-};
-
-exports.approveImmediateOD = async (req, res) => {
-  try {
-    const { odId } = req.params;
-    const od = await OD.findById(odId);
-
-    if (!od) {
-      return res.status(404).json({ message: 'OD request not found.' });
-    }
-
-    if (!od.isImmediate) {
-      return res.status(400).json({ message: 'This is not an immediate OD request.' });
-    }
-
-    od.status = 'approved';
-    od.immediateApprover = req.user._id;
-    od.immediateApprovalDate = new Date();
-    await od.save();
-
-
-
-    res.status(200).json({ message: 'Immediate OD request approved successfully', od });
-  } catch (error) {
-    console.error('Error approving immediate OD request:', error);
-    res.status(400).json({ message: 'Error approving immediate OD request', error });
-  }
-};
 exports.createExternalODRequest = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('tutorId acId hodId');
@@ -291,8 +236,6 @@ exports.getTeacherODRequests = async (req, res) => {
     res.status(500).json({ message: 'Server error during OD request retrieval' });
   }
 };
-
-
 exports.teacherODApproval = async (req, res) => {
   try {
     const { odId } = req.params;
@@ -360,7 +303,6 @@ exports.getRejectedODRequests = async (req, res) => {
     res.status(500).json({ message: 'Server error during rejected OD request retrieval' });
   }
 };
-
 exports.reconsiderODRequest = async (req, res) => {
   try {
     const { odId } = req.params;
@@ -390,7 +332,6 @@ exports.reconsiderODRequest = async (req, res) => {
     res.status(500).json({ message: 'Server error during OD reconsideration' });
   }
 };
-
 exports.getEventStudentsWithOD = async (req, res) => {
   try {
     const { eventId } = req.params;
@@ -418,4 +359,79 @@ exports.getEventStudentsWithOD = async (req, res) => {
   }
 };
 
+exports.getStudentSemesterReport = async (req, res) => {
+  try {
+    const tutorId = req.user._id;
+    const { semester } = req.query;
 
+    // Get all ODs for students under this tutor for specified semester
+    const odReport = await OD.aggregate([
+      {
+        $match: {
+          tutorId: mongoose.Types.ObjectId(tutorId),
+          semester: semester
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'studentDetails'
+        }
+      },
+      {
+        $unwind: '$studentDetails'
+      },
+      {
+        $group: {
+          _id: '$studentId',
+          studentName: { $first: '$studentDetails.name' },
+          rollNo: { $first: '$studentDetails.rollNo' },
+          department: { $first: '$studentDetails.department' },
+          totalODs: { $sum: 1 },
+          approvedODs: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'approved'] }, 1, 0]
+            }
+          },
+          rejectedODs: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0]
+            }
+          },
+          pendingODs: {
+            $sum: {
+              $cond: [{ $eq: ['$status', 'pending'] }, 1, 0]
+            }
+          },
+          odDetails: {
+            $push: {
+              eventName: '$eventName',
+              dateFrom: '$dateFrom',
+              dateTo: '$dateTo',
+              status: '$status',
+              reason: '$reason'
+            }
+          }
+        }
+      },
+      {
+        $sort: { 'rollNo': 1 }
+      }
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: odReport
+    });
+
+  } catch (error) {
+    console.error('Error generating semester report:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error generating semester report',
+      error: error.message
+    });
+  }
+};

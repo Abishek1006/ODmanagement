@@ -122,16 +122,7 @@ api.getAllCourses = () => {
 };
 
 
-// Assign methods to the api object
-api.enrollInCourse = enrollInCourse;
-api.getEnrolledCourses = getEnrolledCourses;
-api.deleteCourseEnrollment = deleteCourseEnrollment;
-api.getStudentsWithOD = getStudentsWithOD;
-api.getODHistory = getODHistory;
-api.getRejectedODs = getRejectedODs;
-api.reconsiderOD = reconsiderOD;
-api.getUserRoles = getUserRoles;
-api.getUserDetails = getUserDetails;
+
 
 // Profile picture upload method
 const uploadProfilePicture = (imageData) => {
@@ -161,5 +152,19 @@ api.getApprovalStatus = () => {
 api.approveOD = (odId, status) => {
   return api.patch(`/od/${odId}/teacher-approval`, { status });
 };
+// Add to existing api methods
+api.getStudentSemesterReport = (semester) => {
+  return api.get(`/od/student-semester-report?semester=${semester}`);
+};
+// Assign methods to the api object
+api.enrollInCourse = enrollInCourse;
+api.getEnrolledCourses = getEnrolledCourses;
+api.deleteCourseEnrollment = deleteCourseEnrollment;
+api.getStudentsWithOD = getStudentsWithOD;
+api.getODHistory = getODHistory;
+api.getRejectedODs = getRejectedODs;
+api.reconsiderOD = reconsiderOD;
+api.getUserRoles = getUserRoles;
+api.getUserDetails = getUserDetails;
 
 export default api;

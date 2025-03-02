@@ -1,6 +1,8 @@
 // routes/od.route.js
 const express = require('express');
-const { createODRequest, approveODRequest, rejectODRequest, getODRequests, createImmediateODRequest, approveImmediateOD  ,  getTeacherODRequests, teacherODApproval , createExternalODRequest ,getODHistory,getRejectedODRequests,reconsiderODRequest,getEventStudentsWithOD } = require('../controllers/od.controller');
+const { createODRequest, approveODRequest, rejectODRequest, getODRequests ,  getTeacherODRequests, 
+  teacherODApproval , createExternalODRequest , getODHistory,getRejectedODRequests,reconsiderODRequest,
+  getEventStudentsWithOD , getStudentSemesterReport} = require('../controllers/od.controller');
 const { protect, restrictToRole  } = require('../middleware/auth.middleware');
 const { approvalFlow , filterODRequests } = require('../middleware/approval.middleware');
 
@@ -16,9 +18,7 @@ router.route('/:odId/approve')
 router.route('/:odId/reject')
   .patch(protect, rejectODRequest); // Reject OD request
 
-  router.post('/external', protect, createExternalODRequest);
-router.post('/immediate', protect, createImmediateODRequest);
-router.patch('/immediate/:odId/approve', protect, restrictToRole('hod'), approveImmediateOD);
+router.post('/external', protect, createExternalODRequest);
 router.get('/rejected-requests', protect, getRejectedODRequests);
 router.post('/:odId/reconsider', protect, reconsiderODRequest);
 
@@ -41,6 +41,10 @@ router.patch('/:odId/teacher-approval',
   teacherODApproval
 );
 
+router.get('/student-semester-report', 
+  protect, 
+  restrictToRole(['tutor']), 
+  getStudentSemesterReport
+);
+
 module.exports = router;
-
-

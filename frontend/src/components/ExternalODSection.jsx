@@ -14,7 +14,11 @@ const ExternalODSection = () => {
     location: '',
     eventType: '',
     proof: '',
+    semester: ''
   });
+
+  // Add semester field in the form
+
 
   const [submitted, setSubmitted] = useState(false);
     const handleSubmit = async (e) => {
@@ -113,6 +117,23 @@ const ExternalODSection = () => {
             required
           />
         </div>
+        <div>
+    <label className="block text-gray-700 dark:text-gray-300 flex items-center">
+      <FaInfoCircle className="mr-2" /> Semester
+    </label>
+    <select
+      name="semester"
+      value={formData.semester}
+      onChange={handleChange}
+      className="w-full p-2 border-2 border-gray-900 dark:border-gray-600 rounded-lg"
+      required
+    >
+      <option value="">Select Semester</option>
+      {['1', '2', '3', '4', '5', '6', '7', '8'].map(sem => (
+        <option key={sem} value={sem}>Semester {sem}</option>
+      ))}
+    </select>
+  </div>
         <div>
           <label className="block text-gray-700 dark:text-gray-300 flex items-center">
             <FaCalendarAlt className="mr-2" /> From Date

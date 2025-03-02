@@ -10,20 +10,10 @@ import CourseManagement from '../components/CourseManagement';
 import EventCreation from '../components/EventCreation';
 import RejectedODSection from '../components/RejectedODSection';
 import MyEvents from '../components/MyEvents';
+import SemesterReport from '../components/SemesterReport';
 
 const TeacherDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
-  const [userRole, setUserRole] = useState(api.getUserRoles().primaryRole);
-
-  // Add role-specific UI elements
-  const getRoleSpecificTitle = () => {
-    switch(userRole) {
-      case 'tutor': return 'Pending OD Requests';
-      case 'ac': return 'Tutor Approved Requests';
-      case 'hod': return 'AC Approved Requests';
-      default: return 'OD Requests';
-    }
-  };
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
@@ -38,7 +28,6 @@ const TeacherDashboard = () => {
           response.data.secondaryRoles || [],
           response.data.isLeader || false
         );
-        setUserRoles(api.getUserRoles());
         setIsLoading(false);
       } catch (error) {
         console.error('Error fetching user details:', error);
@@ -107,11 +96,12 @@ const TeacherDashboard = () => {
           <ul className="space-y-2">
             {[
               { path: 'personal-details', label: 'Personal Details' },
-              { path: 'od-approval', label: 'OD Approval' },
+              { path: 'od-approval', label: 'OD Requests' },
               { path: 'courses', label: 'Courses' },
               { path: 'events', label: 'My Events' },
               { path: 'create-event', label: 'Create Event' },
               { path: 'rejected-ods', label: 'Rejected ODs' },
+              { path: 'semester-report', label: 'Semester Report' },
             ].map((item) => (
               <li key={item.path}>
                 <button
@@ -140,6 +130,7 @@ const TeacherDashboard = () => {
             <Route path="events" element={<MyEvents userType="teacher" />} />
             <Route path="create-event" element={<EventCreation />} />
             <Route path="rejected-ods" element={<RejectedODSection />} />
+            <Route path="semester-report" element={<SemesterReport />} />
           </Routes>
         </main>
       </div>

@@ -24,7 +24,10 @@ const EventCard = ({ event, showDelete = false }) => {
     endTime: event.endTime,
     reason: "",
     eventName: event.name,
+    semester: "" // Add this
   });
+
+
   const [dateError, setDateError] = useState("");
   const user = api.getUserRoles();
 
@@ -51,9 +54,12 @@ const EventCard = ({ event, showDelete = false }) => {
 
   const handleRequestOD = async (e) => {
     e.preventDefault();
-    console.log('Event Data:', event);
-    console.log('OD Form Data:', odData);
-  
+    
+    if (!odData.semester) {
+      alert("Please select a semester");
+      return;
+    }
+
     try {
       const requestPayload = {
         eventName: event.name,
@@ -64,20 +70,15 @@ const EventCard = ({ event, showDelete = false }) => {
         reason: odData.reason,
         isExternal: false,
         location: event.location || "",
-        eventType: event.entryType || ""
+        eventType: event.entryType || "",
+        semester: odData.semester,  // Ensure semester is included
       };
-  
       console.log('Request Payload:', requestPayload);
       await requestOD(requestPayload);
       setShowODForm(false);
       alert("OD request submitted successfully");
     } catch (error) {
-      console.error('OD Request Error Details:', {
-        error: error,
-        message: error.message,
-        response: error.response?.data
-      });
-      alert(`Failed to submit OD request: ${error.response?.data?.message || error.message}`);
+      alert(`Failed to submit OD request: ${error.message}`);
     }
   };
   
@@ -196,6 +197,23 @@ const EventCard = ({ event, showDelete = false }) => {
               maxLength="500"
             />
           </div>
+          <div className="space-y-2">
+    <label className="block text-gray-700 dark:text-gray-300">
+      Semester:
+    </label>
+    <select
+      name="semester"
+      value={odData.semester}
+      onChange={(e) => setODData({ ...odData, semester: e.target.value })}
+      className="w-full p-2 border-2 border-gray-900 dark:border-gray-600 rounded-lg"
+      required
+    >
+      <option value="">Select Semester</option>
+      {['1', '2', '3', '4', '5', '6', '7', '8'].map(sem => (
+        <option key={sem} value={sem}>Semester {sem}</option>
+      ))}
+    </select>
+  </div>
           <div className="flex space-x-2">
             <button
               type="submit"
