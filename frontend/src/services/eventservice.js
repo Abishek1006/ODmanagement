@@ -12,12 +12,11 @@ export const getEvents = async () => {
 };
 export const requestOD = async (odData) => {
   try {
-    console.log('OD Request Data:', odData);
     const userDetails = api.getUserDetails();
+    console.log('User Details:', userDetails); // Debug log
     
-    if (!userDetails || !userDetails._id || !userDetails.tutorId || !userDetails.acId || !userDetails.hodId || !odData.semester) {
-      console.log('Missing user details:', userDetails);
-      throw new Error('User details not complete');
+    if (!userDetails || !userDetails._id || !userDetails.tutorId || !userDetails.acId || !userDetails.hodId || !userDetails.semester) {
+      throw new Error('User details not complete - semester is required');
     }
 
     const requestPayload = {
@@ -26,23 +25,19 @@ export const requestOD = async (odData) => {
       tutorId: userDetails.tutorId,
       acId: userDetails.acId,
       hodId: userDetails.hodId,
-      semester: odData.semester // Explicitly ensure semester is included
+      semester: userDetails.semester
     };
     
-    console.log('Final Request Payload:', requestPayload);
+    console.log('Request Payload:', requestPayload); // Debug log
     const endpoint = odData.isExternal ? '/od/external' : '/od';
     const response = await api.post(endpoint, requestPayload);
-    console.log('OD Request Response:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Detailed OD Request Error:', {
-      message: error.message,
-      response: error.response?.data,
-      status: error.response?.status
-    });
+    console.error('RequestOD Error:', error);
     throw error;
   }
 };
+
 export const getEventStudentsWithOD = async (eventId) => {
   try {
     console.log('Making API request for event:', eventId);

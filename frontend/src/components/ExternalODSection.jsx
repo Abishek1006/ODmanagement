@@ -14,7 +14,6 @@ const ExternalODSection = () => {
     location: '',
     eventType: '',
     proof: '',
-    semester: ''
   });
 
   // Add semester field in the form

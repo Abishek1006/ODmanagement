@@ -5,16 +5,32 @@ const SemesterReport = () => {
   const [semester, setSemester] = useState('');
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [studentDetails, setStudentDetails] = useState(null);
 
   const handleGenerateReport = async () => {
     try {
       setLoading(true);
+      setError(null);
       const response = await api.getStudentSemesterReport(semester);
+      console.log('Report data:', response.data);
       setReport(response.data.data);
     } catch (error) {
       console.error('Error generating report:', error);
+      setError('Failed to generate report');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleViewDetails = async (studentId) => {
+    try {
+      const response = await api.getStudentODDetails(studentId, semester);
+      setStudentDetails(response.data.data);
+      setSelectedStudent(studentId);
+    } catch (error) {
+      console.error('Error fetching student details:', error);
     }
   };
 
@@ -44,19 +60,19 @@ const SemesterReport = () => {
       </div>
 
       {loading && <div>Loading...</div>}
+      {error && <div className="text-red-500">{error}</div>}
 
-      {report && (
+      {report && report.length > 0 ? (
         <div className="overflow-x-auto">
           <table className="min-w-full bg-white border">
             <thead>
               <tr className="bg-orange-100">
                 <th className="p-2">Roll No</th>
                 <th className="p-2">Name</th>
-                <th className="p-2">Total ODs</th>
-                <th className="p-2">Approved</th>
-                <th className="p-2">Rejected</th>
-                <th className="p-2">Pending</th>
-                <th className="p-2">Details</th>
+                <th className="p-2">Department</th>
+                <th className="p-2">Approved ODs</th>
+                <th className="p-2">Total Hours</th>
+                <th className="p-2">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -64,13 +80,12 @@ const SemesterReport = () => {
                 <tr key={student._id} className="border-t">
                   <td className="p-2">{student.rollNo}</td>
                   <td className="p-2">{student.studentName}</td>
-                  <td className="p-2">{student.totalODs}</td>
+                  <td className="p-2">{student.department}</td>
                   <td className="p-2">{student.approvedODs}</td>
-                  <td className="p-2">{student.rejectedODs}</td>
-                  <td className="p-2">{student.pendingODs}</td>
+                  <td className="p-2">{student.totalHours}</td>
                   <td className="p-2">
                     <button 
-                      onClick={() => setExpandedStudent(student._id)}
+                      onClick={() => handleViewDetails(student._id)}
                       className="text-blue-500 hover:underline"
                     >
                       View Details
@@ -81,9 +96,45 @@ const SemesterReport = () => {
             </tbody>
           </table>
         </div>
+      ) : (        <div>No data found for selected semester</div>
+      )}
+
+      {studentDetails && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg max-w-3xl max-h-[80vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">OD Details</h3>
+            <table className="w-full">
+              <thead>
+                <tr>
+                  <th>Event Name</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Location</th>
+                  <th>Reason</th>
+                </tr>
+              </thead>
+              <tbody>
+                {studentDetails.map(od => (
+                  <tr key={od._id}>
+                    <td>{od.eventName}</td>
+                    <td>{new Date(od.dateFrom).toLocaleDateString()} - {new Date(od.dateTo).toLocaleDateString()}</td>
+                    <td>{od.startTime} - {od.endTime}</td>
+                    <td>{od.location}</td>
+                    <td>{od.reason}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <button 
+              onClick={() => setStudentDetails(null)}
+              className="mt-4 bg-orange-500 text-white px-4 py-2 rounded"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
 };
-
 export default SemesterReport;

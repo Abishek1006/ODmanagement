@@ -22,6 +22,13 @@ const userSchema = new mongoose.Schema({
     enum: ['student', 'teacher', 'tutor', 'ac', 'hod'], 
     required: true 
   },
+  semester: {
+    type: String,
+    enum: ['1', '2', '3', '4', '5', '6', '7', '8'],
+    required: function() {
+      return this.primaryRole === 'student';
+    }
+  },
   secondaryRoles: [{
     type: String,
     enum: ['teacher', 'tutor', 'ac', 'hod']

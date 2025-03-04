@@ -2,7 +2,7 @@
 const express = require('express');
 const { createODRequest, approveODRequest, rejectODRequest, getODRequests ,  getTeacherODRequests, 
   teacherODApproval , createExternalODRequest , getODHistory,getRejectedODRequests,reconsiderODRequest,
-  getEventStudentsWithOD , getStudentSemesterReport} = require('../controllers/od.controller');
+  getEventStudentsWithOD , getStudentSemesterReport , getStudentODDetails} = require('../controllers/od.controller');
 const { protect, restrictToRole  } = require('../middleware/auth.middleware');
 const { approvalFlow , filterODRequests } = require('../middleware/approval.middleware');
 
@@ -45,6 +45,14 @@ router.get('/student-semester-report',
   protect, 
   restrictToRole(['tutor']), 
   getStudentSemesterReport
+);
+
+
+
+router.get('/student-od-details/:studentId/:semester', 
+  protect, 
+  restrictToRole(['tutor']), 
+  getStudentODDetails
 );
 
 module.exports = router;

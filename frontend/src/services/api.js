@@ -2,6 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
+  //baseURL: 'http://localhost:5000/api'
   baseURL: 'https://od-management.onrender.com/api'  // Your backend URL
 });
 
@@ -62,6 +63,7 @@ api.setUserDetails = (details) => {
     acId: details.acId,
     hodId: details.hodId,
     _id: details._id,
+    semester: details.semester 
   };
   localStorage.setItem('userDetails', JSON.stringify(userDetails));
 };
@@ -156,6 +158,10 @@ api.approveOD = (odId, status) => {
 api.getStudentSemesterReport = (semester) => {
   return api.get(`/od/student-semester-report?semester=${semester}`);
 };
+api.getStudentODDetails = (studentId, semester) => {
+  return api.get(`/od/student-od-details/${studentId}/${semester}`);
+};
+
 // Assign methods to the api object
 api.enrollInCourse = enrollInCourse;
 api.getEnrolledCourses = getEnrolledCourses;

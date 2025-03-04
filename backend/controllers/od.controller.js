@@ -3,45 +3,23 @@
 const OD = require('../models/od.model');
 const User = require('../models/user.model');
 const Course = require('../models/course.model');
+const mongoose = require('mongoose');
+
 // Create an OD request
 exports.createODRequest = async (req, res) => {
   try {
-    const { 
-      studentId, eventName, dateFrom, dateTo, 
-      startTime, endTime, reason, tutorId, 
-      acId, hodId, isExternal, location, eventType,
-      semester
-    } = req.body;
-
-    if (!semester) {
-      return res.status(400).json({ 
-        message: 'Semester is required'
-      });
-    }
-
-    // Validate semester is one of the allowed values
-    if (!['1', '2', '3', '4', '5', '6', '7', '8'].includes(semester)) {
+    const student = await User.findById(req.body.studentId);
+    if (!student || !student.semester) {
       return res.status(400).json({
-        message: 'Invalid semester value'
+        message: 'Student semester not found'
       });
     }
 
     const odRequest = await OD.create({
-      studentId,
-      eventName,
-      dateFrom,
-      dateTo,
-      startTime,
-      endTime,
-      reason,
-      tutorId,
-      acId,
-      hodId,
+      ...req.body,
+      semester: student.semester,
       status: 'pending',
-      isExternal: isExternal || false,
-      location,
-      eventType,
-      semester
+      isExternal: false
     });
 
     res.status(201).json({ 
@@ -55,7 +33,9 @@ exports.createODRequest = async (req, res) => {
       error: error.message 
     });
   }
-};// Approve OD request
+};
+
+
 exports.approveODRequest = async (req, res) => {
   try {
     const odId = req.params.odId;
@@ -170,7 +150,6 @@ exports.createExternalODRequest = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('tutorId acId hodId');
     
-    // Validate proof link for external ODs
     if (!req.body.proof) {
       return res.status(400).json({ 
         message: 'Proof link is required for external OD requests' 
@@ -185,7 +164,8 @@ exports.createExternalODRequest = async (req, res) => {
       hodId: user.hodId,
       status: 'pending',
       isExternal: true,
-      proof: req.body.proof // Explicitly set the proof field
+      proof: req.body.proof,
+      semester: user.semester // Get semester from user details
     });
     
     res.status(201).json({ 
@@ -206,15 +186,12 @@ exports.getTeacherODRequests = async (req, res) => {
     const approvalField = `${userRole}Approval`;
 
     const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0); // Start of today
-
-    const endDate = new Date(currentDate);
-    endDate.setDate(endDate.getDate() + 1); // Start of tomorrow
+    currentDate.setHours(0, 0, 0, 0); // Set to start of today
 
     const query = {
       [`${approvalField}`]: false,
       status: 'pending',
-      dateFrom: { $gte: currentDate, $lt: endDate } // Include all requests for today
+      dateFrom: { $gte: currentDate } // This includes today and future dates
     };
 
     // Add previous approval requirements
@@ -236,6 +213,7 @@ exports.getTeacherODRequests = async (req, res) => {
     res.status(500).json({ message: 'Server error during OD request retrieval' });
   }
 };
+
 exports.teacherODApproval = async (req, res) => {
   try {
     const { odId } = req.params;
@@ -364,12 +342,30 @@ exports.getStudentSemesterReport = async (req, res) => {
     const tutorId = req.user._id;
     const { semester } = req.query;
 
-    // Get all ODs for students under this tutor for specified semester
     const odReport = await OD.aggregate([
       {
         $match: {
-          tutorId: mongoose.Types.ObjectId(tutorId),
-          semester: semester
+          tutorId: new mongoose.Types.ObjectId(tutorId),
+          semester: semester,
+          status: 'approved'  // Only get approved ODs
+        }
+      },
+      {
+        $addFields: {
+          startHour: { $toInt: { $substr: ["$startTime", 0, 2] } },
+          endHour: { $toInt: { $substr: ["$endTime", 0, 2] } },
+          dateDifference: {
+            $divide: [
+              { $subtract: ["$dateTo", "$dateFrom"] },
+              1000 * 60 * 60 * 24
+            ]
+          }
+        }
+      },
+      {
+        $addFields: {
+          hoursPerDay: { $subtract: ["$endHour", "$startHour"] },
+          totalDays: { $add: ["$dateDifference", 1] }
         }
       },
       {
@@ -389,49 +385,52 @@ exports.getStudentSemesterReport = async (req, res) => {
           studentName: { $first: '$studentDetails.name' },
           rollNo: { $first: '$studentDetails.rollNo' },
           department: { $first: '$studentDetails.department' },
-          totalODs: { $sum: 1 },
-          approvedODs: {
-            $sum: {
-              $cond: [{ $eq: ['$status', 'approved'] }, 1, 0]
-            }
-          },
-          rejectedODs: {
-            $sum: {
-              $cond: [{ $eq: ['$status', 'rejected'] }, 1, 0]
-            }
-          },
-          pendingODs: {
-            $sum: {
-              $cond: [{ $eq: ['$status', 'pending'] }, 1, 0]
-            }
-          },
-          odDetails: {
-            $push: {
-              eventName: '$eventName',
-              dateFrom: '$dateFrom',
-              dateTo: '$dateTo',
-              status: '$status',
-              reason: '$reason'
-            }
+          approvedODs: { $sum: 1 },
+          totalHours: { 
+            $sum: { 
+              $multiply: ["$hoursPerDay", "$totalDays"] 
+            } 
           }
         }
       },
-      {
-        $sort: { 'rollNo': 1 }
-      }
+      { $sort: { 'rollNo': 1 } }
     ]);
 
     res.status(200).json({
       success: true,
       data: odReport
     });
-
   } catch (error) {
     console.error('Error generating semester report:', error);
     res.status(500).json({
       success: false,
       message: 'Error generating semester report',
       error: error.message
+    });
+  }
+};
+exports.getStudentODDetails = async (req, res) => {
+  try {
+    const { studentId, semester } = req.params;
+    const tutorId = req.user._id;
+
+    const odDetails = await OD.find({
+      studentId: studentId,
+      tutorId: tutorId,
+      semester: semester,
+      status: 'approved'
+    })
+    .select('eventName dateFrom dateTo startTime endTime location reason')
+    .sort('-dateFrom');
+
+    res.json({
+      success: true,
+      data: odDetails
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching student OD details'
     });
   }
 };
