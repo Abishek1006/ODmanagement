@@ -2,8 +2,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  //baseURL: 'http://localhost:5000/api'
-  baseURL: 'https://od-management.onrender.com/api'  // Your backend URL
+  baseURL: 'http://localhost:5000/api'
+  //baseURL: 'https://od-management.onrender.com/api'  // Your backend URL
 });
 
 
@@ -155,12 +155,28 @@ api.approveOD = (odId, status) => {
   return api.patch(`/od/${odId}/teacher-approval`, { status });
 };
 // Add to existing api methods
-api.getStudentSemesterReport = (semester) => {
-  return api.get(`/od/student-semester-report?semester=${semester}`);
-};
 api.getStudentODDetails = (studentId, semester) => {
   return api.get(`/od/student-od-details/${studentId}/${semester}`);
 };
+api.getStudentSemesterReport = (semester) => {
+  const userRoles = getUserRoles();
+  if (userRoles.primaryRole !== 'tutor') {
+    throw new Error('Unauthorized access');
+  }
+  return api.get(`/od/student-semester-report?semester=${semester}`);
+};
+
+api.downloadSemesterReportPDF = (semester) => {
+  const userRoles = getUserRoles();
+  if (userRoles.primaryRole !== 'tutor') {
+    throw new Error('Unauthorized access');
+  }
+  return api.get(`/od/student-semester-report/${semester}/download-pdf`, {
+    responseType: 'blob'
+  });
+};
+
+
 
 // Assign methods to the api object
 api.enrollInCourse = enrollInCourse;

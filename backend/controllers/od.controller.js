@@ -4,6 +4,7 @@ const OD = require('../models/od.model');
 const User = require('../models/user.model');
 const Course = require('../models/course.model');
 const mongoose = require('mongoose');
+const PDFDocument = require('pdfkit');
 
 // Create an OD request
 exports.createODRequest = async (req, res) => {
@@ -434,3 +435,140 @@ exports.getStudentODDetails = async (req, res) => {
     });
   }
 };
+
+
+exports.downloadSemesterReportPDF = async (req, res) => {
+  try {
+    const tutorId = req.user._id;
+    const { semester } = req.params;
+
+    // Get the report data using the same aggregation pipeline as your view
+    const odReport = await OD.aggregate([
+      {
+        $match: {
+          tutorId: new mongoose.Types.ObjectId(tutorId),
+          semester: semester,
+          status: 'approved'
+        }
+      },
+      {
+        $addFields: {
+          startHour: { $toInt: { $substr: ["$startTime", 0, 2] } },
+          endHour: { $toInt: { $substr: ["$endTime", 0, 2] } },
+          dateDifference: {
+            $divide: [
+              { $subtract: ["$dateTo", "$dateFrom"] },
+              1000 * 60 * 60 * 24
+            ]
+          }
+        }
+      },
+      {
+        $addFields: {
+          hoursPerDay: { $subtract: ["$endHour", "$startHour"] },
+          totalDays: { $add: ["$dateDifference", 1] }
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'studentId',
+          foreignField: '_id',
+          as: 'studentDetails'
+        }
+      },
+      {
+        $unwind: '$studentDetails'
+      },
+      {
+        $group: {
+          _id: '$studentId',
+          studentName: { $first: '$studentDetails.name' },
+          rollNo: { $first: '$studentDetails.rollNo' },
+          department: { $first: '$studentDetails.department' },
+          approvedODs: { $sum: 1 },
+          totalHours: { 
+            $sum: { 
+              $multiply: ["$hoursPerDay", "$totalDays"] 
+            } 
+          }
+        }
+      },
+      { $sort: { 'rollNo': 1 } }
+    ]);
+
+    const doc = new PDFDocument({ margin: 50 }); // Added margins for better spacing
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=semester_${semester}_report.pdf`);
+    
+    doc.pipe(res);
+
+    // Add title
+    doc.fontSize(20).text('Semester OD Report', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(14).text(`Semester: ${semester}`, { align: 'center' });
+    doc.moveDown();
+
+    // Define table layout
+    const startX = 50;
+    const columnWidths = [80, 180, 120, 80, 80]; // Adjusted widths
+    const columnPositions = columnWidths.reduce((acc, width, i) => {
+      acc.push((acc[i - 1] || startX) + width);
+      return acc;
+    }, []);
+
+    const tableTop = 150;
+
+    // Draw table headers with proper spacing
+    doc.fontSize(12).font('Helvetica-Bold');
+    doc.text('Roll No', startX, tableTop);
+    doc.text('Name', columnPositions[0], tableTop);
+    doc.text('Department', columnPositions[1], tableTop);
+    doc.text('ODs', columnPositions[2], tableTop);
+    doc.text('Hours', columnPositions[3], tableTop);
+    
+    doc.moveDown(0.5);
+
+    let yPosition = tableTop + 25;
+
+    // Draw table data with proper spacing
+    doc.font('Helvetica');
+    odReport.forEach((student) => {
+      if (yPosition > 700) {
+        doc.addPage();
+        yPosition = 50;
+      }
+
+      doc.text(student.rollNo, startX, yPosition);
+
+      // Wrap long names into two lines
+      const nameWidth = columnWidths[1] - 10;
+      const studentName = doc.widthOfString(student.studentName) > nameWidth
+        ? doc.text(student.studentName, columnPositions[0], yPosition, { width: nameWidth, lineBreak: true })
+        : doc.text(student.studentName, columnPositions[0], yPosition);
+
+      doc.text(student.department, columnPositions[1], yPosition);
+      doc.text(student.approvedODs.toString(), columnPositions[2], yPosition);
+      doc.text(Math.round(student.totalHours).toString(), columnPositions[3], yPosition);
+
+      yPosition += 30; // More spacing to prevent overlap
+    });
+
+    doc.end();
+
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    if (!res.headersSent) {
+      res.status(500).json({
+        success: false,
+        message: 'Error generating PDF report'
+      });
+    }
+  }
+};
+
+
+
+
+

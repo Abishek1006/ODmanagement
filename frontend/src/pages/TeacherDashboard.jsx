@@ -18,6 +18,7 @@ const TeacherDashboard = () => {
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const userRoles = api.getUserRoles();
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -69,6 +70,17 @@ const TeacherDashboard = () => {
     return <div className="flex justify-center items-center h-screen bg-orange-50 dark:bg-gray-900">Loading...</div>;
   }
 
+  const menuItems = [
+    { path: 'personal-details', label: 'Personal Details' },
+    { path: 'od-approval', label: 'OD Requests' },
+    { path: 'courses', label: 'Courses' },
+    { path: 'events', label: 'My Events' },
+    { path: 'create-event', label: 'Create Event' },
+    { path: 'rejected-ods', label: 'Rejected ODs' },
+    // Only show semester report for tutors
+    ...(userRoles.primaryRole === 'tutor' ? [{ path: 'semester-report', label: 'Semester Report' }] : [])
+  ];
+
   return (
     <div className="min-h-screen bg-orange-50 dark:bg-gray-900">
       <Navbar />
@@ -94,15 +106,7 @@ const TeacherDashboard = () => {
             <LogOut size={30} />
           </button>
           <ul className="space-y-2">
-            {[
-              { path: 'personal-details', label: 'Personal Details' },
-              { path: 'od-approval', label: 'OD Requests' },
-              { path: 'courses', label: 'Courses' },
-              { path: 'events', label: 'My Events' },
-              { path: 'create-event', label: 'Create Event' },
-              { path: 'rejected-ods', label: 'Rejected ODs' },
-              { path: 'semester-report', label: 'Semester Report' },
-            ].map((item) => (
+            {menuItems.map((item) => (
               <li key={item.path}>
                 <button
                   className={`w-full text-left p-2 rounded-lg ${
@@ -137,5 +141,4 @@ const TeacherDashboard = () => {
     </div>
   );
 };
-
 export default TeacherDashboard;

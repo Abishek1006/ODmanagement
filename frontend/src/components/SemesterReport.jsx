@@ -24,6 +24,21 @@ const SemesterReport = () => {
     }
   };
 
+  const handleDownloadPDF = async () => {
+    try {
+      const response = await api.downloadSemesterReportPDF(semester);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `semester_${semester}_report.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error('Error downloading PDF:', error);
+    }
+  };
+
   const handleViewDetails = async (studentId) => {
     try {
       const response = await api.getStudentODDetails(studentId, semester);
@@ -38,7 +53,7 @@ const SemesterReport = () => {
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Semester OD Report</h2>
       
-      <div className="mb-4">
+      <div className="mb-4 flex items-center">
         <select 
           value={semester}
           onChange={(e) => setSemester(e.target.value)}
@@ -57,6 +72,15 @@ const SemesterReport = () => {
         >
           Generate Report
         </button>
+
+        {report && report.length > 0 && (
+          <button
+            onClick={handleDownloadPDF}
+            className="ml-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition-colors"
+          >
+            Download PDF
+          </button>
+        )}
       </div>
 
       {loading && <div>Loading...</div>}
@@ -96,7 +120,8 @@ const SemesterReport = () => {
             </tbody>
           </table>
         </div>
-      ) : (        <div>No data found for selected semester</div>
+      ) : (        
+        <div>No data found for selected semester</div>
       )}
 
       {studentDetails && (
@@ -137,4 +162,5 @@ const SemesterReport = () => {
     </div>
   );
 };
+
 export default SemesterReport;

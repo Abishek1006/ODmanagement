@@ -52,7 +52,19 @@ const StudentDashboard = () => {
     };
   }, []);
 
-  const canCreateEvent = userRoles.isLeader;
+  // Get isLeader status from user roles
+  const canAccessMyEvents = userRoles.isLeader;
+
+  const menuItems = [ 
+    { path: 'events', label: 'Events' },
+    // Only show My Events to leaders
+    ...(canAccessMyEvents ? [{ path: 'my-events', label: 'My Events' }] : []),
+    { path: 'personal-details', label: 'Personal Details' },
+    { path: 'od-section', label: 'OD Section' },
+    { path: 'od-history', label: 'OD History' },
+    { path: 'external-od', label: 'External OD' },
+    ...(canAccessMyEvents ? [{ path: 'create-event', label: 'Create Event' }] : [])
+  ];
 
   const handleSectionChange = (section) => {
     navigate(section);
@@ -86,15 +98,7 @@ const StudentDashboard = () => {
             <X size={30} />
           </button>
           <ul className="space-y-2 mt-10">
-            {[ 
-              { path: 'events', label: 'Events' },
-              { path: 'my-events', label: 'My Events' },
-              { path: 'personal-details', label: 'Personal Details' },
-              { path: 'od-section', label: 'OD Section' },
-              { path: 'od-history', label: 'OD History' },
-              { path: 'external-od', label: 'External OD' },
-              ...(canCreateEvent ? [{ path: 'create-event', label: 'Create Event' }] : [])
-            ].map((item) => (
+            {menuItems.map((item) => (
               <li key={item.path}>
                 <button
                   className={`w-full text-left p-2 rounded-lg ${
@@ -127,5 +131,4 @@ const StudentDashboard = () => {
     </div>
   );
 };
-
 export default StudentDashboard;
