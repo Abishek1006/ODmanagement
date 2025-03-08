@@ -13,16 +13,24 @@ const SemesterReport = () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Validate semester before making API call
+      const validSemesters = ['1', '2', '3', '4', '5', '6', '7', '8'];
+      if (!validSemesters.includes(semester)) {
+        setError('Invalid semester selected');
+        setLoading(false);
+        return;
+      }
+      
       const response = await api.getStudentSemesterReport(semester);
-      console.log('Report data:', response.data);
       setReport(response.data.data);
     } catch (error) {
-      console.error('Error generating report:', error);
       setError('Failed to generate report');
     } finally {
       setLoading(false);
     }
   };
+  
 
   const handleDownloadPDF = async () => {
     try {

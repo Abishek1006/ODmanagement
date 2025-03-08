@@ -219,7 +219,6 @@ exports.teacherODApproval = async (req, res) => {
   try {
     const { odId } = req.params;
     const { status } = req.body;
-    const teacherId = req.user._id;
     const userRole = req.user.primaryRole;
 
     const odRequest = await OD.findById(odId);
@@ -341,14 +340,24 @@ exports.getEventStudentsWithOD = async (req, res) => {
 exports.getStudentSemesterReport = async (req, res) => {
   try {
     const tutorId = req.user._id;
-    const { semester } = req.query;
+    const semester = req.query.semester;
 
+    // Validate semester input
+    const validSemesters = ['1', '2', '3', '4', '5', '6', '7', '8'];
+    if (!validSemesters.includes(semester)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid semester value'
+      });
+    }
+
+    // Use validated inputs in aggregation pipeline
     const odReport = await OD.aggregate([
       {
         $match: {
-          tutorId: new mongoose.Types.ObjectId(tutorId),
+          tutorId: new mongoose.Types.ObjectId(String(tutorId)),
           semester: semester,
-          status: 'approved'  // Only get approved ODs
+          status: 'approved'
         }
       },
       {
@@ -405,8 +414,7 @@ exports.getStudentSemesterReport = async (req, res) => {
     console.error('Error generating semester report:', error);
     res.status(500).json({
       success: false,
-      message: 'Error generating semester report',
-      error: error.message
+      message: 'Error generating semester report'
     });
   }
 };
@@ -446,7 +454,7 @@ exports.downloadSemesterReportPDF = async (req, res) => {
     const odReport = await OD.aggregate([
       {
         $match: {
-          tutorId: new mongoose.Types.ObjectId(tutorId),
+          tutorId: new mongoose.Types.ObjectId(String(tutorId)),
           semester: semester,
           status: 'approved'
         }
@@ -567,8 +575,3 @@ exports.downloadSemesterReportPDF = async (req, res) => {
     }
   }
 };
-
-
-
-
-

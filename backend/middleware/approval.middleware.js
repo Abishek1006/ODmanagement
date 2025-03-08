@@ -46,6 +46,13 @@ const filterODRequests = async (req, res, next) => {
 
   next();
 };
+const validateSemester = (req, res, next) => {
+  const validSemesters = ['1', '2', '3', '4', '5', '6', '7', '8'];
+  if (!validSemesters.includes(req.query.semester)) {
+    return res.status(400).json({ message: 'Invalid semester parameter' });
+  }
+  next();
+};
 
 
-module.exports = { approvalFlow, filterODRequests };
+module.exports = { approvalFlow, filterODRequests , validateSemester};

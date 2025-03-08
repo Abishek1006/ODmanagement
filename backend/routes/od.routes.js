@@ -4,8 +4,7 @@ const { createODRequest, approveODRequest, rejectODRequest, getODRequests ,  get
   teacherODApproval , createExternalODRequest , getODHistory,getRejectedODRequests,reconsiderODRequest,
   getEventStudentsWithOD , getStudentSemesterReport , getStudentODDetails , downloadSemesterReportPDF} = require('../controllers/od.controller');
 const { protect, restrictToRole   } = require('../middleware/auth.middleware');
-const { approvalFlow , filterODRequests } = require('../middleware/approval.middleware');
-
+const { approvalFlow , filterODRequests ,validateSemester } = require('../middleware/approval.middleware');
 const router = express.Router();
 
 router.route('/')
@@ -43,7 +42,8 @@ router.patch('/:odId/teacher-approval',
 
 router.get('/student-semester-report', 
   protect, 
-  restrictToRole(['tutor']), 
+  restrictToRole(['tutor']),
+  validateSemester,
   getStudentSemesterReport
 );
 
