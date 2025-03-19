@@ -3,7 +3,6 @@ import StudentDashboard from './pages/StudentDashboard';
 import TeacherDashboard from './pages/TeacherDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import Login from './components/Login';
-import Register from './components/Register';
 import api from './services/api';
 
 const ProtectedAdminRoute = () => {
@@ -20,7 +19,6 @@ function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Login />} />
-        <Route path="/register" element={<Register />} />
         <Route path="/student-dashboard/*" element={<StudentDashboard />} />
         <Route path="/teacher-dashboard/*" element={<TeacherDashboard />} />
         <Route path="/admin-dashboard/*" element={<ProtectedAdminRoute />} />

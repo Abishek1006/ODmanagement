@@ -51,8 +51,8 @@ exports.createUser = asyncHandler(async (req, res) => {
     throw new Error('User already exists');
   }
 
-  // Check for duplicate staff ID if provided
-  if (staffId) {
+  // Check for duplicate staff ID if provided and user is not a student
+  if (staffId && primaryRole !== 'student') {
     const staffIdExists = await User.findOne({ staffId });
     if (staffIdExists) {
       res.status(400);
@@ -61,7 +61,7 @@ exports.createUser = asyncHandler(async (req, res) => {
   }
 
   // Check for duplicate roll number if provided
-  if (rollNo) {
+  if (rollNo && primaryRole === 'student') {
     const rollNoExists = await User.findOne({ rollNo });
     if (rollNoExists) {
       res.status(400);
@@ -73,21 +73,32 @@ exports.createUser = asyncHandler(async (req, res) => {
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
 
-  const user = await User.create({
+  // Create user object
+  const userData = {
     name,
     email,
     password: hashedPassword,
     primaryRole,
     secondaryRoles: secondaryRoles || [],
     department,
-    semester: primaryRole === 'student' ? semester : undefined,
-    staffId: primaryRole !== 'student' ? staffId : undefined,
-    rollNo: primaryRole === 'student' ? rollNo : undefined,
-    isLeader: primaryRole === 'student' ? isLeader : false,
-    tutorId: tutorId || undefined,
-    acId: acId || undefined,
-    hodId: hodId || undefined
-  });
+  };
+
+  // Add role-specific fields
+  if (primaryRole === 'student') {
+    userData.semester = semester;
+    userData.rollNo = rollNo;
+    userData.isLeader = isLeader || false;
+    // IMPORTANT: Do NOT add staffId field at all for students
+  } else {
+    userData.staffId = staffId;
+  }
+
+  // Add mentor references if provided
+  if (tutorId) userData.tutorId = tutorId;
+  if (acId) userData.acId = acId;
+  if (hodId) userData.hodId = hodId;
+
+  const user = await User.create(userData);
 
   res.status(201).json({
     _id: user._id,
@@ -97,7 +108,6 @@ exports.createUser = asyncHandler(async (req, res) => {
     department: user.department
   });
 });
-
 exports.updateUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   if (!user) {
@@ -130,8 +140,8 @@ exports.updateUser = asyncHandler(async (req, res) => {
     }
   }
 
-  // Check if staffId is being changed and if it already exists
-  if (staffId && staffId !== user.staffId) {
+  // Check if staffId is being changed and if it already exists (for non-students)
+  if (staffId && staffId !== user.staffId && primaryRole !== 'student') {
     const staffIdExists = await User.findOne({ staffId });
     if (staffIdExists) {
       res.status(400);
@@ -139,8 +149,8 @@ exports.updateUser = asyncHandler(async (req, res) => {
     }
   }
 
-  // Check if rollNo is being changed and if it already exists
-  if (rollNo && rollNo !== user.rollNo) {
+  // Check if rollNo is being changed and if it already exists (for students)
+  if (rollNo && rollNo !== user.rollNo && primaryRole === 'student') {
     const rollNoExists = await User.findOne({ rollNo });
     if (rollNoExists) {
       res.status(400);
@@ -148,7 +158,7 @@ exports.updateUser = asyncHandler(async (req, res) => {
     }
   }
 
-  // Update user fields
+  // Update basic user fields
   user.name = name || user.name;
   user.email = email || user.email;
   user.primaryRole = primaryRole || user.primaryRole;
@@ -160,11 +170,16 @@ exports.updateUser = asyncHandler(async (req, res) => {
     user.semester = semester || user.semester;
     user.rollNo = rollNo || user.rollNo;
     user.isLeader = isLeader !== undefined ? isLeader : user.isLeader;
-    user.staffId = undefined; // Clear staff ID if switching to student
+    
+    // IMPORTANT: Remove staffId field completely for students
+    user.set('staffId', undefined);  // This properly removes the field
   } else {
     user.staffId = staffId || user.staffId;
-    user.rollNo = undefined; // Clear roll number if switching from student
-    user.isLeader = false; // Clear leader status if switching from student
+    
+    // IMPORTANT: Remove student-specific fields for non-students
+    user.set('rollNo', undefined);
+    user.set('semester', undefined);
+    user.isLeader = false;
   }
   
   // Update mentor references
@@ -196,7 +211,6 @@ exports.updateUser = asyncHandler(async (req, res) => {
     hodId: updatedUser.hodId
   });
 });
-
 exports.deleteUser = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id);
   

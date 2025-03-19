@@ -20,6 +20,12 @@ const TeacherDashboard = () => {
   const location = useLocation();
   const userRoles = api.getUserRoles();
 
+  // Add logout handler
+  const handleLogout = () => {
+    api.logout();
+    navigate('/'); // Navigate to home/login page
+  };
+
   useEffect(() => {
     const fetchUserDetails = async () => {
       try {
@@ -103,8 +109,9 @@ const TeacherDashboard = () => {
             onClick={() => setSidebarOpen(false)}
             className="lg:hidden absolute top-4 right-4 text-orange-600 dark:text-orange-400 mb-6"
           >
-            <LogOut size={30} />
+            <X size={30} />
           </button>
+          
           <ul className="space-y-2">
             {menuItems.map((item) => (
               <li key={item.path}>
@@ -120,6 +127,17 @@ const TeacherDashboard = () => {
                 </button>
               </li>
             ))}
+            
+            {/* Add Logout Button */}
+            <li className="mt-auto pt-4 border-t border-orange-200 dark:border-gray-700">
+              <button
+                className="w-full text-left p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center"
+                onClick={handleLogout}
+              >
+                <LogOut size={18} className="mr-2" />
+                Logout
+              </button>
+            </li>
           </ul>
         </nav>
 

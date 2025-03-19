@@ -46,20 +46,29 @@ exports.registerUser = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // Create new user
-    const newUser = new User({
+    // Create user data object
+    const userData = {
       name,
       email,
       password: hashedPassword,
-      rollNo: primaryRole === 'student' ? rollNo : null,
-      staffId: primaryRole !== 'student' ? staffId : null,
       department,
       primaryRole,
-      isLeader: primaryRole === 'student' ? isLeader : false,  // Students can be leaders, others cannot
-      secondaryRoles: primaryRole !== 'student' ? secondaryRoles : [], // Only non-students can have secondary roles
-    });
+      secondaryRoles: primaryRole !== 'student' ? secondaryRoles || [] : [],
+    };
 
-    // Save user to the database
+    // Add role-specific fields
+    if (primaryRole === 'student') {
+      userData.rollNo = rollNo;
+      userData.isLeader = isLeader || false;
+      userData.semester = req.body.semester; // Add semester for students
+      // Do NOT add staffId for students at all
+    } else {
+      userData.staffId = staffId;
+      // Do NOT add student-specific fields for non-students
+    }
+
+    // Create new user
+    const newUser = new User(userData);
     await newUser.save();
 
     // Respond with created user details
@@ -71,11 +80,9 @@ exports.registerUser = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ message: 'Server error during registration' });
+    res.status(500).json({ message: 'Server error during registration: ' + error.message });
   }
 };
-
-
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;

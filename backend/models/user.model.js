@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema({
 
 // Add performance-optimized indexes
 userSchema.index({ email: 1 }, { unique: true }); // Fast email lookups for login
-userSchema.index({ staffId: 1 }, { unique: true, sparse: true }); // Fast staff ID queries
+userSchema.index({ staffId: 1 }, { unique: true, sparse: true }); // Properly defined index for staffId
 userSchema.index({ rollNo: 1 }, { sparse: true }); // Fast student roll number queries
 userSchema.index({ department: 1, primaryRole: 1 }); // Fast department + role filtering
 userSchema.index({ 'courses.courseId': 1 }); // Fast course lookups

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, LogOut } from 'lucide-react'; // Import LogOut icon
 import Navbar from '../components/Navbar';
 import api from '../services/api';
 import EventSection from '../components/EventSection';
@@ -18,6 +18,12 @@ const StudentDashboard = () => {
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+
+  // Add logout handler
+  const handleLogout = () => {
+    api.logout();
+    navigate('/'); // Navigate to home/login page
+  };
 
   useEffect(() => {
     const fetchUserDetails = async () => {
@@ -112,6 +118,17 @@ const StudentDashboard = () => {
                 </button>
               </li>
             ))}
+            
+            {/* Add Logout Button */}
+            <li className="mt-auto pt-4 border-t border-orange-200 dark:border-gray-700">
+              <button
+                className="w-full text-left p-2 rounded-lg bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 flex items-center"
+                onClick={handleLogout}
+              >
+                <LogOut size={18} className="mr-2" />
+                Logout
+              </button>
+            </li>
           </ul>
         </nav>
 

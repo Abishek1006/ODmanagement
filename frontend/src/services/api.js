@@ -2,9 +2,17 @@
 import axios from 'axios';
 
 const api = axios.create({
-  
-  baseURL: 'https://od-management.onrender.com/api'  // Your backend URL
+  baseURL: 'http://localhost:5000/api'
+ // baseURL: 'https://od-management.onrender.com/api'  // Your backend URL
 });
+
+
+api.logout = () => {
+  localStorage.removeItem('token');
+  localStorage.removeItem('userRoles');
+  localStorage.removeItem('userDetails');
+  // Clear any other auth-related items you might have in localStorage
+}; 
 
 // Debug logging for requests
 api.interceptors.request.use((config) => {
@@ -198,5 +206,7 @@ api.getRejectedODs = getRejectedODs;
 api.reconsiderOD = reconsiderOD;
 api.getUserRoles = getUserRoles;
 api.getUserDetails = getUserDetails;
+
+// Add this to your api.js file
 
 export default api;

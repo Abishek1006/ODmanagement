@@ -71,74 +71,98 @@ const AdminUserManagement = () => {
               value
     }));
   };
+    const handleCreateUser = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        // Create a new object instead of modifying the existing one
+        const userData = { ...newUser };
+  
+        // Handle role-specific fields
+        if (userData.primaryRole === 'student') {
+          // For students, include student-specific fields and remove staff fields
+          userData.semester = userData.semester;
+          userData.rollNo = userData.rollNo;
+          userData.isLeader = userData.isLeader || false;
+          delete userData.staffId; // IMPORTANT: Remove staffId completely
+          delete userData.secondaryRoles; // Students don't have secondary roles
+        } else {
+          // For non-students, include staff-specific fields and remove student fields
+          userData.staffId = userData.staffId;
+          delete userData.rollNo; // Remove student-specific fields
+          delete userData.semester;
+          userData.isLeader = false;
+        }
 
-  const handleCreateUser = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const userData = {
-        ...newUser,
-        semester: newUser.primaryRole === 'student' ? newUser.semester : undefined,
-        staffId: newUser.primaryRole !== 'student' ? newUser.staffId : undefined,
-        rollNo: newUser.primaryRole === 'student' ? newUser.rollNo : undefined,
-        isLeader: newUser.primaryRole === 'student' ? newUser.isLeader : false,
-        tutorId: newUser.tutorId || undefined,
-        acId: newUser.acId || undefined,
-        hodId: newUser.hodId || undefined
-      };
+        // Include mentor references if provided
+        if (!userData.tutorId) delete userData.tutorId;
+        if (!userData.acId) delete userData.acId;
+        if (!userData.hodId) delete userData.hodId;
 
-      await api.post('/admin/users', userData);
-      await fetchUsers();
-      setSuccess('User created successfully!');
-      setNewUser({
-        name: '',
-        email: '',
-        password: '',
-        primaryRole: 'student',
-        secondaryRoles: [],
-        department: '',
-        staffId: '',
-        rollNo: '',
-        semester: '',
-        isLeader: false,
-        tutorId: '',
-        acId: '',
-        hodId: ''
-      });
-    } catch (error) {
-      setError('Failed to create user: ' + (error.response?.data?.message || error.message));
-    } finally {
-      setLoading(false);
-    }
-  };
+        await api.post('/admin/users', userData);
+        await fetchUsers();
+        setSuccess('User created successfully!');
+        setNewUser({
+          name: '',
+          email: '',
+          password: '',
+          primaryRole: 'student',
+          secondaryRoles: [],
+          department: '',
+          staffId: '',
+          rollNo: '',
+          semester: '',
+          isLeader: false,
+          tutorId: '',
+          acId: '',
+          hodId: ''
+        });
+      } catch (error) {
+        setError('Failed to create user: ' + (error.response?.data?.message || error.message));
+      } finally {
+        setLoading(false);
+      }
+    };
+    const handleUpdateUser = async (e) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        // Create a new object instead of modifying the existing one
+        const userData = { ...editingUser };
+      
+        // Handle role-specific fields
+        if (userData.primaryRole === 'student') {
+          // For students, include student-specific fields and remove staff fields
+          userData.semester = userData.semester;
+          userData.rollNo = userData.rollNo;
+          userData.isLeader = userData.isLeader || false;
+          delete userData.staffId; // IMPORTANT: Remove staffId completely
+        } else {
+          // For non-students, include staff-specific fields and remove student fields
+          userData.staffId = userData.staffId;
+          delete userData.rollNo; // Remove student-specific fields
+          delete userData.semester;
+          userData.isLeader = false;
+        }
 
-  const handleUpdateUser = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      const userData = {
-        ...editingUser,
-        semester: editingUser.primaryRole === 'student' ? editingUser.semester : undefined,
-        staffId: editingUser.primaryRole !== 'student' ? editingUser.staffId : undefined,
-        rollNo: editingUser.primaryRole === 'student' ? editingUser.rollNo : undefined,
-        isLeader: editingUser.primaryRole === 'student' ? editingUser.isLeader : false,
-        tutorId: editingUser.tutorId || undefined,
-        acId: editingUser.acId || undefined,
-        hodId: editingUser.hodId || undefined
-      };
-      if (!editingUser.password) delete userData.password;
+        // Remove password if not provided
+        if (!userData.password) delete userData.password;
+      
+        // Include mentor references if provided
+        if (!userData.tutorId) delete userData.tutorId;
+        if (!userData.acId) delete userData.acId;
+        if (!userData.hodId) delete userData.hodId;
 
-      await api.put(`/admin/users/${editingUser._id}`, userData);
-      setEditingUser(null);
-      await fetchUsers();
-      setSuccess('User updated successfully!');
-    } catch (error) {
-      setError('Failed to update user: ' + (error.response?.data?.message || error.message));
-    } finally {
-      setLoading(false);
-    }
-  };
-
+        await api.put(`/admin/users/${editingUser._id}`, userData);
+        setEditingUser(null);
+        await fetchUsers();
+        setSuccess('User updated successfully!');
+      } catch (error) {
+        setError('Failed to update user: ' + (error.response?.data?.message || error.message));
+      } finally {
+        setLoading(false);
+      }
+    };
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
       setLoading(true);

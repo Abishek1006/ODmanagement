@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { LogOut } from 'lucide-react'; // Import LogOut icon
 import Navbar from '../components/Navbar';
+import api from '../services/api';
 import AdminUserManagement from '../components/AdminUserManagement';
 import AdminCourseManagement from '../components/AdminCourseManagement';
 import AdminBatchSemesterUpdate from '../components/AdminBatchSemesterUpdate';
@@ -11,6 +13,12 @@ const AdminDashboard = () => {
 
   const handleSectionChange = (section) => {
     navigate(section);
+  };
+  
+  // Add logout handler
+  const handleLogout = () => {
+    api.logout();
+    navigate('/'); // Navigate to home/login page
   };
 
   return (
@@ -53,6 +61,17 @@ const AdminDashboard = () => {
                 onClick={() => handleSectionChange('batch-semester-update')}
               >
                 Batch Semester Update
+              </button>
+            </li>
+            
+            {/* Add Logout Button */}
+            <li className="mt-8 pt-4 border-t border-gray-200">
+              <button
+                className="w-full px-4 py-2 text-left rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors flex items-center"
+                onClick={handleLogout}
+              >
+                <LogOut size={18} className="mr-2" />
+                Logout
               </button>
             </li>
           </ul>

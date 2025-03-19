@@ -133,8 +133,6 @@ function Login() {
                             />
                             {error && <p className="error-message">{error}</p>}
                             <button type="submit">Login</button>
-                            <a href="#" className="forgot-password">Forgot Password?</a>
-                            <a  className="sign-up" onClick={() => navigate('/register')} >Sign up?</a>
                         </form>
                     </div>
                 </div>
