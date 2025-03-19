@@ -2,8 +2,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api'
-  //baseURL: 'https://od-management.onrender.com/api'  // Your backend URL
+  
+  baseURL: 'https://od-management.onrender.com/api'  // Your backend URL
 });
 
 // Debug logging for requests
