@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import UserForm from './UserForm';
 
 const AdminUserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -13,44 +14,71 @@ const AdminUserManagement = () => {
     department: '',
     staffId: '',
     rollNo: '',
+    semester: '',
     isLeader: false,
     tutorId: '',
     acId: '',
     hodId: ''
   });
-
-  // Update the input handlers to use proper state updates
-  const handleInputChange = (field, value) => {
-    setNewUser(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
+  const [tutors, setTutors] = useState([]);
+  const [acs, setAcs] = useState([]);
+  const [hods, setHods] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
   useEffect(() => {
     fetchUsers();
+    fetchMentors();
   }, []);
 
   const fetchUsers = async () => {
+    setLoading(true);
     try {
       const response = await api.get('/admin/users');
       setUsers(response.data);
+      setError('');
     } catch (error) {
       console.error('Error fetching users:', error);
+      setError('Failed to load users. Please try again.');
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const fetchMentors = async () => {
+    try {
+      const [tutorRes, acRes, hodRes] = await Promise.all([
+        api.get('/admin/users?role=tutor'),
+        api.get('/admin/users?role=ac'),
+        api.get('/admin/users?role=hod')
+      ]);
+      setTutors(tutorRes.data || []);
+      setAcs(acRes.data || []);
+      setHods(hodRes.data || []);
+    } catch (error) {
+      console.error('Error fetching mentors:', error);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    const updateFunc = editingUser ? setEditingUser : setNewUser;
+    updateFunc(prevState => ({
+      ...prevState,
+      [name]: type === 'checkbox' ? checked :
+              name === 'secondaryRoles' ? Array.from(e.target.selectedOptions, option => option.value) :
+              value
+    }));
   };
 
   const handleCreateUser = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      // Format the request body similar to registration
       const userData = {
-        name: newUser.name,
-        email: newUser.email,
-        password: newUser.password,
-        primaryRole: newUser.primaryRole,
-        secondaryRoles: newUser.secondaryRoles || [],
-        department: newUser.department,
+        ...newUser,
+        semester: newUser.primaryRole === 'student' ? newUser.semester : undefined,
         staffId: newUser.primaryRole !== 'student' ? newUser.staffId : undefined,
         rollNo: newUser.primaryRole === 'student' ? newUser.rollNo : undefined,
         isLeader: newUser.primaryRole === 'student' ? newUser.isLeader : false,
@@ -59,203 +87,96 @@ const AdminUserManagement = () => {
         hodId: newUser.hodId || undefined
       };
 
-      const response = await api.post('/admin/users', userData);
-      if (response.data) {
-        fetchUsers(); // Refresh the users list
-        // Reset form
-        setNewUser({
-          name: '',
-          email: '',
-          password: '',
-          primaryRole: 'student',
-          secondaryRoles: [],
-          department: '',
-          staffId: '',
-          rollNo: '',
-          isLeader: false,
-          tutorId: '',
-          acId: '',
-          hodId: ''
-        });
-      }
+      await api.post('/admin/users', userData);
+      await fetchUsers();
+      setSuccess('User created successfully!');
+      setNewUser({
+        name: '',
+        email: '',
+        password: '',
+        primaryRole: 'student',
+        secondaryRoles: [],
+        department: '',
+        staffId: '',
+        rollNo: '',
+        semester: '',
+        isLeader: false,
+        tutorId: '',
+        acId: '',
+        hodId: ''
+      });
     } catch (error) {
-      console.error('Error creating user:', error.response?.data?.message || error.message);
-      alert('Failed to create user. Please check the form and try again.');
+      setError('Failed to create user: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleUpdateUser = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
-      await api.put(`/admin/users/${editingUser._id}`, editingUser);
+      const userData = {
+        ...editingUser,
+        semester: editingUser.primaryRole === 'student' ? editingUser.semester : undefined,
+        staffId: editingUser.primaryRole !== 'student' ? editingUser.staffId : undefined,
+        rollNo: editingUser.primaryRole === 'student' ? editingUser.rollNo : undefined,
+        isLeader: editingUser.primaryRole === 'student' ? editingUser.isLeader : false,
+        tutorId: editingUser.tutorId || undefined,
+        acId: editingUser.acId || undefined,
+        hodId: editingUser.hodId || undefined
+      };
+      if (!editingUser.password) delete userData.password;
+
+      await api.put(`/admin/users/${editingUser._id}`, userData);
       setEditingUser(null);
-      fetchUsers();
+      await fetchUsers();
+      setSuccess('User updated successfully!');
     } catch (error) {
-      console.error('Error updating user:', error);
+      setError('Failed to update user: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteUser = async (userId) => {
     if (window.confirm('Are you sure you want to delete this user?')) {
+      setLoading(true);
       try {
         await api.delete(`/admin/users/${userId}`);
-        // After successful deletion, refresh the users list
-        fetchUsers();
+        await fetchUsers();
+        setSuccess('User deleted successfully!');
       } catch (error) {
-        console.error('Error deleting user:', error.response?.data?.message || error.message);
-        alert('Failed to delete user. Please try again.');
+        setError('Failed to delete user: ' + (error.response?.data?.message || error.message));
+      } finally {
+        setLoading(false);
       }
     }
   };
 
-  const UserForm = ({ user, setUser, onSubmit, formTitle, handleInputChange }) => {
-    const isStudent = user.primaryRole === 'student';
-    const isTeacher = ['teacher', 'tutor', 'ac', 'hod'].includes(user.primaryRole);
-  
-    return (
-      <form onSubmit={onSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4">
-        <h3 className="text-xl font-semibold text-gray-700">{formTitle}</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Common Fields with Labels */}
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Full Name</label>
-            <input
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              type="text"
-              required
-              value={user.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-            />
-          </div>
-  
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Email Address</label>
-            <input
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              type="email"
-              required
-              value={user.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-            />
-          </div>
-  
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Password</label>
-            <input
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              type="text"
-              required
-              value={user.password || ''}
-              onChange={(e) => handleInputChange('password', e.target.value)}
-            />
-          </div>
-  
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Primary Role</label>
-            <select
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              value={user.primaryRole}
-              required
-              onChange={(e) => handleInputChange('primaryRole', e.target.value)}
-            >
-              <option value="">Select Role</option>
-              <option value="student">Student</option>
-              <option value="teacher">Teacher</option>
-              <option value="tutor">Tutor</option>
-              <option value="ac">Academic Coordinator</option>
-              <option value="hod">HOD</option>
-            </select>
-          </div>
-  
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-gray-700">Department</label>
-            <input
-              className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-              type="text"
-              required
-              value={user.department}
-              onChange={(e) => handleInputChange('department', e.target.value)}
-            />
-          </div>
-  
-          {/* Student-specific fields */}
-          {isStudent && (
-            <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Roll Number</label>
-              <input
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                type="text"
-                required
-                value={user.rollNo}
-                onChange={(e) => handleInputChange('rollNo', e.target.value)}
-              />
-            </div>
-          )}
-  
-          {/* Teacher-specific fields */}
-          {isTeacher && (
-            <>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Staff ID</label>
-                <input
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  type="text"
-                  required
-                  value={user.staffId}
-                  onChange={(e) => handleInputChange('staffId', e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">Secondary Roles (Hold Ctrl/Cmd to select multiple)</label>
-                <select
-                  multiple
-                  className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-                  value={user.secondaryRoles}
-                  onChange={(e) => handleInputChange('secondaryRoles', Array.from(e.target.selectedOptions, option => option.value))}
-                >
-                  <option value="teacher">Teacher</option>
-                  <option value="tutor">Tutor</option>
-                  <option value="ac">Academic Coordinator</option>
-                  <option value="hod">HOD</option>
-                </select>
-              </div>
-            </>
-          )}
-        </div>
-        <button 
-          type="submit"
-          className="w-full md:w-auto px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-        >
-          {formTitle}
-        </button>
-      </form>
-    );
-  };
-  
   return (
     <div className="space-y-6">
       <h2 className="text-2xl font-bold text-gray-800">User Management</h2>
-      
-      {editingUser ? (
-        <UserForm 
-          user={editingUser} 
-          setUser={setEditingUser} 
-          onSubmit={handleUpdateUser}
-          formTitle="Update User"
-          handleInputChange={handleInputChange}
-        />
-      ) : (
-        <UserForm 
-          user={newUser} 
-          setUser={setNewUser} 
-          onSubmit={handleCreateUser}
-          formTitle="Create New User"
-          handleInputChange={handleInputChange}
-        />
-      )}
-  
+      {error && <div className="p-3 bg-red-100 text-red-700 rounded-md">{error}</div>}
+      {success && <div className="p-3 bg-green-100 text-green-700 rounded-md">{success}</div>}
+
+      <UserForm
+        formData={editingUser || newUser}
+        tutors={tutors}
+        acs={acs}
+        hods={hods}
+        onChange={handleInputChange}
+        onSubmit={editingUser ? handleUpdateUser : handleCreateUser}
+        isEditing={!!editingUser}
+        loading={loading}
+        onCancel={() => setEditingUser(null)}
+      />
+
       <div className="bg-white p-6 rounded-lg shadow-md">
         <h3 className="text-xl font-semibold text-gray-700 mb-4">Existing Users</h3>
+        
+        {loading && <p className="text-gray-500">Loading users...</p>}
+        
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -264,32 +185,57 @@ const AdminUserManagement = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {users.map(user => (
-                <tr key={user._id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{user.primaryRole}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{user.department}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <button
-                      onClick={() => setEditingUser(user)}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteUser(user._id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
+              {users.length > 0 ? (
+                users.map(user => (
+                  <tr key={user._id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">{user.name}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.email}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                        {user.primaryRole}
+                      </span>
+                      {user.secondaryRoles?.length > 0 && (
+                        <div className="mt-1 flex flex-wrap gap-1">
+                          {user.secondaryRoles.map(role => (
+                            <span key={role} className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-800">
+                              {role}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">{user.department}</td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {user.primaryRole === 'student' ? user.rollNo : user.staffId}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <button
+                        onClick={() => setEditingUser({ ...user, password: '' })}
+                        className="text-blue-600 hover:text-blue-900 mr-4"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDeleteUser(user._id)}
+                        className="text-red-600 hover:text-red-900"
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="6" className="px-6 py-4 text-center text-gray-500">
+                    No users found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

@@ -123,25 +123,6 @@ const PersonalDetails = () => {
     setSelectedCourse(null);
   };
 
-  const handleMentorChange = async () => {
-    try {
-      if (!selectedMentors.tutorId && !selectedMentors.acId && !selectedMentors.hodId) {
-        setError('Please select at least one mentor');
-        return;
-      }
-
-      const confirmed = window.confirm('Are you sure you want to update your mentors?');
-      if (!confirmed) return;
-
-      await api.put('/user-details/update-mentors', selectedMentors);
-      await fetchUserDetails();
-      setIsEditing(false);
-      setError(null);
-      alert('Mentors updated successfully!');
-    } catch (error) {
-      setError('Failed to update mentors');
-    }
-  };
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -236,92 +217,7 @@ const PersonalDetails = () => {
           </div>
         </div>
 
-        <div className="mentors-section">
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-            <FaChalkboardTeacher className="mr-2" /> Mentors
-          </h3>
-          {!isEditing ? (
-            <div className="mentors-display">
-              <p className="text-gray-700 dark:text-gray-300">
-                <strong>Tutor:</strong> {userDetails.tutorId?.name || 'Not assigned'}
-              </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                <strong>Academic Coordinator:</strong> {userDetails.acId?.name || 'Not assigned'}
-              </p>
-              <p className="text-gray-700 dark:text-gray-300">
-                <strong>HOD:</strong> {userDetails.hodId?.name || 'Not assigned'}
-              </p>
-              <button
-                onClick={() => setIsEditing(true)}
-                className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors duration-300"
-              >
-                Change Mentors
-              </button>
-            </div>
-          ) : (
-            <div className="mentors-edit space-y-4">
-              <div className="mentor-select">
-                <label className="block text-gray-700 dark:text-gray-300">Tutor:</label>
-                <select
-                  value={selectedMentors.tutorId}
-                  onChange={(e) => setSelectedMentors({ ...selectedMentors, tutorId: e.target.value })}
-                  className="w-full p-2 border-2 border-gray-900 dark:border-gray-600 rounded-lg"
-                >
-                  <option value="">Select Tutor</option>
-                  {allTeachers.map((teacher) => (
-                    <option key={teacher._id} value={teacher._id}>
-                      {teacher.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mentor-select">
-                <label className="block text-gray-700 dark:text-gray-300">Academic Coordinator:</label>
-                <select
-                  value={selectedMentors.acId}
-                  onChange={(e) => setSelectedMentors({ ...selectedMentors, acId: e.target.value })}
-                  className="w-full p-2 border-2 border-gray-900 dark:border-gray-600 rounded-lg"
-                >
-                  <option value="">Select AC</option>
-                  {allTeachers.map((teacher) => (
-                    <option key={teacher._id} value={teacher._id}>
-                      {teacher.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mentor-select">
-                <label className="block text-gray-700 dark:text-gray-300">HOD:</label>
-                <select
-                  value={selectedMentors.hodId}
-                  onChange={(e) => setSelectedMentors({ ...selectedMentors, hodId: e.target.value })}
-                  className="w-full p-2 border-2 border-gray-900 dark:border-gray-600 rounded-lg"
-                >
-                  <option value="">Select HOD</option>
-                  {allTeachers.map((teacher) => (
-                    <option key={teacher._id} value={teacher._id}>
-                      {teacher.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="mentor-actions flex space-x-2">
-                <button
-                  onClick={handleMentorChange}
-                  className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors duration-300"
-                >
-                  Save Changes
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-300"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+
 
         <div className="courses-section">
           <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">

@@ -3,6 +3,7 @@ import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-
 import Navbar from '../components/Navbar';
 import AdminUserManagement from '../components/AdminUserManagement';
 import AdminCourseManagement from '../components/AdminCourseManagement';
+import AdminBatchSemesterUpdate from '../components/AdminBatchSemesterUpdate';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -42,6 +43,18 @@ const AdminDashboard = () => {
                 Course Management
               </button>
             </li>
+            <li>
+              <button
+                className={`w-full px-4 py-2 text-left rounded-lg transition-colors ${
+                  location.pathname === '/admin/batch-semester-update'
+                    ? 'bg-blue-600 text-white'
+                    : 'hover:bg-blue-50 text-gray-700'
+                }`}
+                onClick={() => handleSectionChange('batch-semester-update')}
+              >
+                Batch Semester Update
+              </button>
+            </li>
           </ul>
         </nav>
         <main className="flex-1 p-8 bg-gray-100">
@@ -49,6 +62,7 @@ const AdminDashboard = () => {
             <Route path="/" element={<Navigate to="users" replace />} />
             <Route path="users" element={<AdminUserManagement />} />
             <Route path="courses" element={<AdminCourseManagement />} />
+            <Route path="batch-semester-update" element={<AdminBatchSemesterUpdate />} />
           </Routes>
         </main>
       </div>

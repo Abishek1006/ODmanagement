@@ -9,7 +9,8 @@ const {
   getAllCourses,
   createCourse,
   updateCourse,
-  deleteCourse
+  deleteCourse,
+  batchUpdateSemester
 } = require('../controllers/admin.controller');
 
 router.use(protect);
@@ -27,4 +28,6 @@ router.post('/courses', createCourse);
 router.put('/courses/:id', updateCourse);
 router.delete('/courses/:id', deleteCourse);
 
+// Batch operations
+router.post('/batch-update-semester', batchUpdateSemester);
 module.exports = router;

@@ -2,15 +2,15 @@
 import axios from 'axios';
 
 const api = axios.create({
-  //baseURL: 'http://localhost:5000/api'
-  baseURL: 'https://od-management.onrender.com/api'  // Your backend URL
+  baseURL: 'http://localhost:5000/api'
+  //baseURL: 'https://od-management.onrender.com/api'  // Your backend URL
 });
-
 
 // Debug logging for requests
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
-  if (token) {
+  if (token) 
+  {
     config.headers.Authorization = `Bearer ${token}`;
   }
   console.log('API Request:', {
@@ -173,6 +173,16 @@ api.downloadSemesterReportPDF = (semester) => {
   }
   return api.get(`/od/student-semester-report/${semester}/download-pdf`, {
     responseType: 'blob'
+  });
+};
+// Add this method to your api.js file if it's not already there
+
+// Batch update semester method
+api.batchUpdateSemester = (fromSemester, toSemester, department) => {
+  return api.post('/admin/batch-update-semester', {
+    fromSemester,
+    toSemester,
+    department
   });
 };
 
