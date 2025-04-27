@@ -107,17 +107,23 @@ exports.rejectODRequest = async (req, res) => {
   // controllers/od.controller.js
   exports.getODRequests = async (req, res) => {
     try {
-      const odRequests = await OD.find({ studentId: req.user._id })
+      const odRequests = await OD.find({ 
+        studentId: req.user._id,
+        status: 'pending' // Only fetch pending ODs
+      })
         .lean()
-        .select('eventName dateFrom dateTo status')
+        .select('eventName dateFrom dateTo startTime endTime status tutorApproval acApproval hodApproval')
         .sort({ dateFrom: -1 })
         .limit(50);
     
       res.json(odRequests);
     } catch (error) {
+      console.error('Error fetching OD requests:', error);
       res.status(500).json({ message: 'Error fetching OD requests' });
     }
   };
+  
+  
 // Add this new controller method
 exports.getODHistory = async (req, res) => {
   try {
@@ -138,6 +144,7 @@ exports.getODHistory = async (req, res) => {
       ]
     })
     .populate('tutorId acId hodId')
+    .select('eventName dateFrom dateTo startTime endTime status tutorApproval acApproval hodApproval tutorId acId hodId createdAt')
     .sort('-createdAt');
 
     res.json(historyRequests);
@@ -147,6 +154,7 @@ exports.getODHistory = async (req, res) => {
     res.status(500).json({ message: 'Error fetching OD history' });
   }
 };
+
 exports.createExternalODRequest = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('tutorId acId hodId');

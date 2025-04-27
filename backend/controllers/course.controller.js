@@ -76,14 +76,14 @@ exports.getStudentsWithOD = async (req, res) => {
           status: 'approved',
           dateFrom: { $lte: today },
           dateTo: { $gte: today }
-        }).select('eventName dateFrom dateTo reason');
+        }).select('eventName dateFrom dateTo startTime endTime reason');
 
         const yesterdayODs = await OD.find({
           studentId: enrollment.studentId._id,
           status: 'approved',
           dateFrom: { $lte: yesterday },
           dateTo: { $gte: yesterday }
-        }).select('eventName dateFrom dateTo reason');
+        }).select('eventName dateFrom dateTo startTime endTime reason');
 
         return {
           _id: enrollment.studentId._id,
@@ -108,6 +108,7 @@ exports.getStudentsWithOD = async (req, res) => {
     res.status(500).json({ message: 'Error fetching students data' });
   }
 };
+
 exports.getCourseById = async (req, res) => {
   try {
     const course = await Course.findOne({ courseId: req.params.courseId })
