@@ -72,27 +72,12 @@ The E-OD System is a modern, scalable platform designed to digitize and streamli
   - OD pattern analysis
   - Custom report generation
 
-## Architecture
-
-### System Design
-```mermaid
-graph TD
-    A[Client Layer] --> B[API Gateway]
-    B --> C[Application Layer]
-    C --> D[Service Layer]
-    D --> E[Database Layer]
-    D --> F[Cache Layer]
-    B --> G[Authentication Service]
-    C --> H[Notification Service]
-```
-
 ### Security Architecture
 - JWT-based authentication
 - Role-based access control (RBAC)
 - API rate limiting
 - Request validation middleware
 - Data encryption at rest
-- Audit logging
 
 ## Technical Stack
 
