@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import api from '../services/api';
+import { setCookie } from '../utils/cookieUtils';
 import snrlogo from "../assets/snrlogo.png";
 import sreclogo from "../assets/sreclogo.png";
 import image1 from "../assets/image1.png";
@@ -62,7 +63,7 @@ function Login() {
         e.preventDefault();
         try {
             const response = await api.post('/auth/login', { email, password });
-            localStorage.setItem('token', response.data.token);
+            //setCookie('token', response.data.token);
             
             // Fetch complete user details after login
             const userDetailsResponse = await api.get('/user-details');
@@ -74,10 +75,7 @@ function Login() {
                 response.data.isLeader || false
             );
             
-            // if (response.data.isAdmin === true) {
-            //     navigate('/admin-dashboard');
-            // } else
-             if (response.data.primaryRole === 'student') {
+            if (response.data.primaryRole === 'student') {
                 navigate('/student-dashboard');
             } else if(response.data.primaryRole === 'teacher' || response.data.primaryRole === 'tutor' || response.data.primaryRole === 'ac' || response.data.primaryRole === 'hod' ) {
                 navigate('/teacher-dashboard');

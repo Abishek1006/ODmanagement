@@ -1,22 +1,22 @@
 // src/services/api.js
 import axios from 'axios';
-
+import { setCookie, getCookie, removeCookie } from '../utils/cookieUtils';
 const api = axios.create({
-  //baseURL: 'https://od-management.onrender.com/api' // Your backend URL
-  baseURL: 'http://localhost:5000/api'
+  //baseURL: 'https://od-management.onrender.com/api'
+  baseURL: 'http://localhost:5000/api',
+  withCredentials: true // This is crucial for cookies to be sent with requests
 });
 
-
 api.logout = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('userRoles');
-  localStorage.removeItem('userDetails');
-  // Clear any other auth-related items you might have in localStorage
+  removeCookie('token');
+  removeCookie('userRoles');
+  removeCookie('userDetails');
+  // Clear any other auth-related cookies
 }; 
 
 // Debug logging for requests
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = getCookie('token');
   if (token) 
   {
     config.headers.Authorization = `Bearer ${token}`;
@@ -51,17 +51,15 @@ api.interceptors.response.use(
 
 // Helper functions for user roles and details
 const getUserRoles = () => {
-  const userRoles = localStorage.getItem('userRoles');
-  return userRoles ? JSON.parse(userRoles) : { primaryRole: '', secondaryRoles: [], isLeader: false };
+  return getCookie('userRoles') || { primaryRole: '', secondaryRoles: [], isLeader: false };
 };
 
 const getUserDetails = () => {
-  const details = localStorage.getItem('userDetails');
-  return details ? JSON.parse(details) : null;
+  return getCookie('userDetails') || null;
 };
 
 api.setUserRoles = (primaryRole, secondaryRoles, isLeader) => {
-  localStorage.setItem('userRoles', JSON.stringify({ primaryRole, secondaryRoles, isLeader }));
+  setCookie('userRoles', { primaryRole, secondaryRoles, isLeader });
 };
 
 api.setUserDetails = (details) => {
@@ -73,7 +71,7 @@ api.setUserDetails = (details) => {
     _id: details._id,
     semester: details.semester 
   };
-  localStorage.setItem('userDetails', JSON.stringify(userDetails));
+  setCookie('userDetails', userDetails);
 };
 
 // Course-related methods

@@ -97,19 +97,31 @@ exports.loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Invalid email or password.' });
     }
 
+    const token = generateToken(user._id);
+
+    // Set HTTP-only cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+
+    // Respond without the token
     res.status(200).json({
       _id: user._id,
       email: user.email,
       primaryRole: user.primaryRole,
       secondaryRoles: user.secondaryRoles,
       isLeader: user.isLeader,
-      isAdmin: user.isAdmin,  // Make sure this is included
-      token: generateToken(user._id),
-  });
-  
+      isAdmin: user.isAdmin,
+    });
+
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error during login' });
   }
 };
+
+
 

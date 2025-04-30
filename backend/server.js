@@ -11,14 +11,30 @@ const notificationRoutes = require('./routes/notification.routes');
 const userDetailsRoutes = require('./routes/userDetails.routes');
 const courseRoutes = require('./routes/course.routes');
 const adminRoutes = require('./routes/admin.routes');
-
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',');
 dotenv.config();
 connectDB();
 
 const app = express();
 
 // Middleware
-app.use(cors());
+
+
+app.use(cors({
+  origin: function(origin, callback) {
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
+      return callback(new Error(msg), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
+}));
+
+const cookieParser = require('cookie-parser');
+app.use(cookieParser());
 app.use(express.json());
 
 // API Routes
