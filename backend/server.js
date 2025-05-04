@@ -12,30 +12,38 @@ const notificationRoutes = require('./routes/notification.routes');
 const userDetailsRoutes = require('./routes/userDetails.routes');
 const courseRoutes = require('./routes/course.routes');
 const adminRoutes = require('./routes/admin.routes');
-const allowedOrigins = process.env.CORS_ORIGIN.split(',').map(origin => origin.trim());
 connectDB();
 
 const app = express();
 
+// Replace the current allowedOrigins line with:
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+  : ['https://srecodsite.onrender.com', 'http://localhost:5173'];
+
+
+console.log('Configured allowed origins:', allowedOrigins);
+
 // Middleware
-
-
+// Replace your current CORS configuration with this simpler version
 app.use(cors({
-  origin: function(origin, callback) {
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) === -1) {
-      const msg = 'The CORS policy for this site does not allow access from the specified Origin.';
-      return callback(new Error(msg), false);
-    }
-    return callback(null, true);
-  },
-  credentials: true
+  origin: 'http://srecodsite.onrender.com',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 app.use(express.json());
+
+// Add this before your API routes
+app.get('/api/debug-cors', (req, res) => {
+  res.json({
+    message: 'CORS is working',
+    allowedOrigins: allowedOrigins
+  });
+});
 
 // API Routes
 app.use('/api/auth', authRoutes);
