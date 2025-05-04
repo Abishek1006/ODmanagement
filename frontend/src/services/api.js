@@ -2,8 +2,8 @@
 import axios from 'axios';
 import { setCookie, getCookie, removeCookie } from '../utils/cookieUtils';
 const api = axios.create({
-  //baseURL: 'https://od-management.onrender.com/api'
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://od-management.onrender.com/api',
+  //baseURL: 'http://localhost:5000/api',
   withCredentials: true // This is crucial for cookies to be sent with requests
 });
 
