@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+dotenv.config();
 const cors = require('cors');
 const { connectDB } = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
@@ -12,7 +13,6 @@ const userDetailsRoutes = require('./routes/userDetails.routes');
 const courseRoutes = require('./routes/course.routes');
 const adminRoutes = require('./routes/admin.routes');
 const allowedOrigins = process.env.CORS_ORIGIN.split(',').map(origin => origin.trim());
-dotenv.config();
 connectDB();
 
 const app = express();
