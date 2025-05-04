@@ -11,7 +11,7 @@ const notificationRoutes = require('./routes/notification.routes');
 const userDetailsRoutes = require('./routes/userDetails.routes');
 const courseRoutes = require('./routes/course.routes');
 const adminRoutes = require('./routes/admin.routes');
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173').split(',');
+const allowedOrigins = process.env.CORS_ORIGIN.split(',').map(origin => origin.trim());
 dotenv.config();
 connectDB();
 
