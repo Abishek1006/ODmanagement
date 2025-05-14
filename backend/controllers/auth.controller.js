@@ -83,6 +83,7 @@ exports.registerUser = async (req, res) => {
     res.status(500).json({ message: 'Server error during registration: ' + error.message });
   }
 };
+
 exports.loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -99,15 +100,18 @@ exports.loginUser = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    // Set HTTP-only cookie
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-    });
+    // Set HTTP-only cookie with SameSite=None to allow cross-origin
+// Set HTTP-only cookie
+res.cookie('token', token, {
+  httpOnly: true,
+  secure: true, // Always use secure for SameSite=None to work
+  sameSite: 'none', // Allow cross-origin cookies
+  maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+});
 
-    // Respond without the token
+
+
+    // Respond with user data and token
     res.status(200).json({
       _id: user._id,
       email: user.email,
@@ -115,6 +119,7 @@ exports.loginUser = async (req, res) => {
       secondaryRoles: user.secondaryRoles,
       isLeader: user.isLeader,
       isAdmin: user.isAdmin,
+      token: token // Include token in response for clients that prefer localStorage
     });
 
   } catch (error) {
@@ -122,6 +127,3 @@ exports.loginUser = async (req, res) => {
     res.status(500).json({ message: 'Server error during login' });
   }
 };
-
-
-

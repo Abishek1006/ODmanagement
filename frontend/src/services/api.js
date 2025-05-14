@@ -1,17 +1,24 @@
 // src/services/api.js
 import axios from 'axios';
 import { setCookie, getCookie, removeCookie } from '../utils/cookieUtils';
+
 const api = axios.create({
   baseURL: 'https://od-management.onrender.com/api',
   //baseURL: 'http://localhost:5000/api',
-  withCredentials: true // This is crucial for cookies to be sent with requests
+  withCredentials: true // Keep this true to send cookies with requests
 });
 
-api.logout = () => {
+api.logout = async () => {
+  try {
+    await api.get('/auth/logout'); // Call the backend logout endpoint
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+  
+  // Also clear local cookies
   removeCookie('token');
   removeCookie('userRoles');
   removeCookie('userDetails');
-  // Clear any other auth-related cookies
 }; 
 
 // Debug logging for requests
@@ -29,6 +36,7 @@ api.interceptors.request.use((config) => {
   });
   return config;
 });
+
 
 // Debug logging for responses
 api.interceptors.response.use(
@@ -129,16 +137,12 @@ api.getAllCourses = () => {
   return api.get('/admin/courses');
 };
 
-
-
-
 // Profile picture upload method
 const uploadProfilePicture = (imageData) => {
   return api.put('/user-details', { profilePicture: imageData });
 };
 
 api.uploadProfilePicture = uploadProfilePicture;
-
 
 // Add specific methods for hierarchical approvals
 api.getTeacherODRequests = () => {
@@ -181,7 +185,6 @@ api.downloadSemesterReportPDF = (semester) => {
     responseType: 'blob'
   });
 };
-// Add this method to your api.js file if it's not already there
 
 // Batch update semester method
 api.batchUpdateSemester = (fromSemester, toSemester, department) => {
@@ -191,8 +194,6 @@ api.batchUpdateSemester = (fromSemester, toSemester, department) => {
     department
   });
 };
-
-
 
 // Assign methods to the api object
 api.enrollInCourse = enrollInCourse;
@@ -204,7 +205,5 @@ api.getRejectedODs = getRejectedODs;
 api.reconsiderOD = reconsiderOD;
 api.getUserRoles = getUserRoles;
 api.getUserDetails = getUserDetails;
-
-// Add this to your api.js file
 
 export default api;

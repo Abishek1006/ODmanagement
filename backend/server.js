@@ -1,10 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config();
-const cors = require('cors');
 const { connectDB } = require('./config/db');
 const { notFound, errorHandler } = require('./middleware/error.middleware');
-
 // Import Routes
 const authRoutes = require('./routes/auth.routes');
 const eventRoutes = require('./routes/event.routes');
@@ -13,46 +11,39 @@ const notificationRoutes = require('./routes/notification.routes');
 const userDetailsRoutes = require('./routes/userDetails.routes');
 const courseRoutes = require('./routes/course.routes');
 const adminRoutes = require('./routes/admin.routes');
-
-// Connect to MongoDB
 connectDB();
 
 const app = express();
-
-// CORS configuration for allowed origins
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
-  : ['https://srecodsite.onrender.com', 'http://localhost:5173'];
-
-console.log('Configured allowed origins:', allowedOrigins);
-
-// Middleware for CORS
-app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log('Origin not allowed:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
 
 // Middleware
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 app.use(express.json());
 
-// Debugging CORS endpoint
-app.get('/api/debug-cors', (req, res) => {
-  res.json({
-    message: 'CORS is working',
-    allowedOrigins: allowedOrigins
-  });
+// / Allow all origins by not using CORS middleware
+// Allow all origins by not using CORS middleware
+app.use((req, res, next) => {
+  // Handle undefined origin
+  const origin = req.headers.origin || '*';
+  res.header('Access-Control-Allow-Origin', origin);
+  
+  // Only set credentials to true if we have a specific origin (not '*')
+  if (origin !== '*') {
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  res.header('Access-Control-Allow-Methods', 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  next();
 });
+
+
 
 // API Routes
 app.use('/api/auth', authRoutes);
@@ -67,7 +58,6 @@ app.use('/api/admin', adminRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-// Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

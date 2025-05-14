@@ -59,34 +59,36 @@ function Login() {
         setLoginVisible(!isLoginVisible);
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await api.post('/auth/login', { email, password });
-            //setCookie('token', response.data.token);
-            
-            // Fetch complete user details after login
-            const userDetailsResponse = await api.get('/user-details');
-            api.setUserDetails(userDetailsResponse.data);
-            
-            api.setUserRoles(
-                response.data.primaryRole,
-                response.data.secondaryRoles || [],
-                response.data.isLeader || false
-            );
-            
-            if (response.data.primaryRole === 'student') {
-                navigate('/student-dashboard');
-            } else if(response.data.primaryRole === 'teacher' || response.data.primaryRole === 'tutor' || response.data.primaryRole === 'ac' || response.data.primaryRole === 'hod' ) {
-                navigate('/teacher-dashboard');
-            }
-            else {
-                navigate('/admin-dashboard');
-            }
-        } catch (error) {
-            setError(error.response?.data?.message || 'An error occurred during login');
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+        const response = await api.post('/auth/login', { email, password });
+        setCookie('token', response.data.token); // Uncomment this line
+        
+        // Fetch complete user details after login
+        const userDetailsResponse = await api.get('/user-details');
+        api.setUserDetails(userDetailsResponse.data);
+        
+        api.setUserRoles(
+            response.data.primaryRole,
+            response.data.secondaryRoles || [],
+            response.data.isLeader || false
+        );
+        
+        if (response.data.primaryRole === 'student') {
+            navigate('/student-dashboard');
+        } else if(response.data.primaryRole === 'teacher' || response.data.primaryRole === 'tutor' || response.data.primaryRole === 'ac' || response.data.primaryRole === 'hod' ) {
+            navigate('/teacher-dashboard');
         }
-    };
+        else {
+            navigate('/admin-dashboard');
+        }
+    } catch (error) {
+        setError(error.response?.data?.message || 'An error occurred during login');
+    }
+};
+
+
     
 
     return (

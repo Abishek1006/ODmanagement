@@ -2,35 +2,49 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user.model');
 
-// Middleware to protect routes
 const protect = async (req, res, next) => {
   let token;
+  
+  console.log('Auth middleware - Cookies:', req.cookies);
+  console.log('Auth middleware - Authorization header:', req.headers.authorization);
 
-  // Check for token in HTTP-only cookies
+  // Check for token in cookies first
   if (req.cookies.token) {
     token = req.cookies.token;
-  }
-  // Fallback to Authorization header
-  else if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith('Bearer')
-  ) {
+    console.log('Token found in cookies');
+  } 
+  // Then check Authorization header
+  else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
+    console.log('Token found in Authorization header');
   }
 
   if (!token) {
+    console.log('No token found in request');
     return res.status(401).json({ message: 'Not authorized, no token' });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log('Token verified successfully');
     req.user = await User.findById(decoded.id).select('-password');
+    
+    if (!req.user) {
+      console.log('User not found for token');
+      return res.status(401).json({ message: 'User not found' });
+    }
+    
+    console.log('User authenticated:', req.user._id);
     next();
   } catch (error) {
-    console.error(error);
-    res.status(401).json({ message: 'Not authorized, token failed' });
+    console.error('Auth middleware error:', error);
+    return res.status(401).json({ message: 'Not authorized, token failed' });
   }
 };
+
+
+
+
 
 // Restrict access to specified roles
 const restrictToRole = (roles) => {
