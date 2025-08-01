@@ -59,37 +59,74 @@ function Login() {
         setLoginVisible(!isLoginVisible);
     };
 
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-        const response = await api.post('/auth/login', { email, password });
-        setCookie('token', response.data.token); // Uncomment this line
-        
-        // Fetch complete user details after login
-        const userDetailsResponse = await api.get('/user-details');
-        api.setUserDetails(userDetailsResponse.data);
-        
-        api.setUserRoles(
-            response.data.primaryRole,
-            response.data.secondaryRoles || [],
-            response.data.isLeader || false
-        );
-        
-        if (response.data.primaryRole === 'student') {
-            navigate('/student-dashboard');
-        } else if(response.data.primaryRole === 'teacher' || response.data.primaryRole === 'tutor' || response.data.primaryRole === 'ac' || response.data.primaryRole === 'hod' ) {
-            navigate('/teacher-dashboard');
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            const response = await api.post('/auth/login', { email, password });
+            setCookie('token', response.data.token); // Uncomment this line
+            
+            // Fetch complete user details after login
+            const userDetailsResponse = await api.get('/user-details');
+            api.setUserDetails(userDetailsResponse.data);
+            
+            api.setUserRoles(
+                response.data.primaryRole,
+                response.data.secondaryRoles || [],
+                response.data.isLeader || false
+            );
+            
+            if (response.data.primaryRole === 'student') {
+                navigate('/student-dashboard');
+            } else if(response.data.primaryRole === 'teacher' || response.data.primaryRole === 'tutor' || response.data.primaryRole === 'ac' || response.data.primaryRole === 'hod' ) {
+                navigate('/teacher-dashboard');
+            }
+            else {
+                navigate('/admin-dashboard');
+            }
+        } catch (error) {
+            setError(error.response?.data?.message || 'An error occurred during login');
         }
-        else {
-            navigate('/admin-dashboard');
+    };
+
+    const handleGuestLogin = async (guestType) => {
+        let guestEmail = '';
+        if (guestType === 'student') {
+            guestEmail = 'gueststudent@gmail.com';
+        } else if (guestType === 'staff') {
+            guestEmail = 'gueststaff@gmail.com';
         }
-    } catch (error) {
-        setError(error.response?.data?.message || 'An error occurred during login');
-    }
-};
-
-
-    
+        
+        const guestPassword = 'GuestPassword@4#5';
+        
+        try {
+            const response = await api.post('/auth/login', { 
+                email: guestEmail, 
+                password: guestPassword 
+            });
+            setCookie('token', response.data.token);
+            
+            // Fetch complete user details after login
+            const userDetailsResponse = await api.get('/user-details');
+            api.setUserDetails(userDetailsResponse.data);
+            
+            api.setUserRoles(
+                response.data.primaryRole,
+                response.data.secondaryRoles || [],
+                response.data.isLeader || false
+            );
+            
+            if (response.data.primaryRole === 'student') {
+                navigate('/student-dashboard');
+            } else if(response.data.primaryRole === 'teacher' || response.data.primaryRole === 'tutor' || response.data.primaryRole === 'ac' || response.data.primaryRole === 'hod' ) {
+                navigate('/teacher-dashboard');
+            }
+            else {
+                navigate('/admin-dashboard');
+            }
+        } catch (error) {
+            setError(error.response?.data?.message || 'An error occurred during guest login');
+        }
+    };
 
     return (
         <>
@@ -134,6 +171,43 @@ const handleSubmit = async (e) => {
                             {error && <p className="error-message">{error}</p>}
                             <button type="submit">Login</button>
                         </form>
+                        
+                        {/* Guest Login Buttons */}
+                        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+                            <p style={{ marginBottom: '10px', fontSize: '14px', color: '#666' }}>Demo Access:</p>
+                            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                                <button 
+                                    type="button"
+                                    onClick={() => handleGuestLogin('student')}
+                                    style={{
+                                        padding: '8px 16px',
+                                        backgroundColor: '#4CAF50',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '12px'
+                                    }}
+                                >
+                                    Guest - Student
+                                </button>
+                                <button 
+                                    type="button"
+                                    onClick={() => handleGuestLogin('staff')}
+                                    style={{
+                                        padding: '8px 16px',
+                                        backgroundColor: '#2196F3',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer',
+                                        fontSize: '12px'
+                                    }}
+                                >
+                                    Guest - Staff
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
